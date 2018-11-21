@@ -95,7 +95,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.ankki.lucene.IndexMain</mainClass>
+                            <mainClass>com.iris.lucene.IndexMain</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
