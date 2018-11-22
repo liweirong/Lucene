@@ -1,9 +1,9 @@
 package com.iris.lucene;
 
 
+import com.google.gson.Gson;
 import com.iris.lucene.ik.IKAnalyzer6x;
 import com.iris.lucene.model.AuditRecordWithBLOBs;
-import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.*;
@@ -11,6 +11,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.RAMDirectory;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -25,7 +26,7 @@ public class LucenceIndex {
     private static Analyzer analyzer = null;
 
     private static IndexWriter indexWriter = null;
-
+    private static Gson gson = new Gson();
     // 索引路径
     public static final String filePath = "/data/lucene";
 
@@ -61,6 +62,7 @@ public class LucenceIndex {
     private static final String tableNum = "tableNum";
     private static final String fileldName = "fileldName";
     private static final String operSenctenceLen = "operSenctenceLen";
+    private static final String sqlBindValue = "sqlBindValue";
     private static final String rowNum = "rowNum";
     private static final String sqlExecTime = "sqlExecTime";
     private static final String sqlResponse = "sqlResponse";
@@ -75,29 +77,36 @@ public class LucenceIndex {
      * @param filePath 文件位置
      */
     public void bulkIndex(String filePath) {
-        String record = null;
+        String record;
         Charset charset = Charset.forName("utf-8");
         File file = new File(filePath);
         if (!file.exists()) {
             try {
                 Thread.sleep(10000);
                 System.out.println("文件夹" + filePath + "不存在，睡10秒后继续");
+                log.error("文件夹" + filePath + "不存在");
             } catch (InterruptedException e) {
-                log.error("", e);
+                log.error(e);
             }
             return;
         }
         File[] listFiles = file.listFiles();
         if (listFiles != null && listFiles.length == 0) {
             try {
-                Thread.sleep(5000);
-                System.out.println("没有文件，睡5秒后继续");
+                Thread.sleep(3000);
+                System.out.println("没有文件，睡3秒后继续");
                 return;
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+
         indexWriter = getWriter();
+        // 每一个文件提交一次
+        long startTime;
+        long endTime;
+        int initialCapacity = 10240;// list初始容量一万条
+        List<AuditRecordWithBLOBs> list = new ArrayList<>(initialCapacity);
         for (int i = 0; i < listFiles.length; i++) {
             File fileItem = listFiles[i];
             String fileItemPath = fileItem.getPath();
@@ -108,45 +117,73 @@ public class LucenceIndex {
                     InputStreamReader isReader = new InputStreamReader(fileIs, charset);
                     BufferedReader br = new BufferedReader(isReader);
             ) {
-                List<AuditRecordWithBLOBs> list = new ArrayList<>();
+                startTime = System.currentTimeMillis();
                 while ((record = br.readLine()) != null) {
-                    AuditRecordWithBLOBs object = new Gson().fromJson(record, AuditRecordWithBLOBs.class);
-                    for (int j = 0; j < 10000; j++) {
-                        list.add(object);
-                    }
+                    AuditRecordWithBLOBs object = gson.fromJson(record, AuditRecordWithBLOBs.class);
+//                    for (int j = 0; j < i * 10000; j++) {·
+                    list.add(object);
+//                    }
                 }
+                endTime = System.currentTimeMillis();
+                System.out.println("json转换：耗时" + (endTime - startTime) + "毫秒，转换" + list.size() + "条");
 
-                long indexStartTime = System.currentTimeMillis();
+                startTime = System.currentTimeMillis();
                 int total = insert(list, indexWriter);
-                long indexEndTime = System.currentTimeMillis();
-                System.out.println((indexEndTime - indexStartTime) + "毫秒插入" + total + "条");
-                indexWriter.commit();
+                endTime = System.currentTimeMillis();
+                System.out.println("数据入库：" + (endTime - startTime) + "毫秒插入" + total + "条");
             } catch (Throwable e) {
                 e.printStackTrace();
                 try {
                     indexWriter.rollback();
                 } catch (IOException e1) {
-                    e1.printStackTrace();
+                    log.error("数据入库回滚失败", e);
                 }
             } finally {
+                list.clear();
                 boolean delete = fileItem.delete();
-                System.out.println("删除文件" + fileItemPath + delete);
+                System.out.println("删除文件" + fileItemPath + "|" + delete);
             }
         }
         closeIndexWriter();
     }
 
 
-    public int insert(List<AuditRecordWithBLOBs> list, IndexWriter writer) {
+    /**
+     * 把对象进行索引
+     *
+     * @param list        对象集合
+     * @param indexWriter indexWriter
+     * @return 总数
+     */
+    private int insert(List<AuditRecordWithBLOBs> list, IndexWriter indexWriter) {
         int total = 0;
+        RAMDirectory ramDir = new RAMDirectory();
+        IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
+        IndexWriter ramWriter = null;
+        try {
+            ramWriter = new IndexWriter(ramDir, iwc);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // 添加索引进内存
         for (int i = 0; i < list.size(); i++) {
             Document doc = getDoc(list.get(i));
             try {
-                writer.addDocument(doc);
-                total++;
+                if (doc != null) {
+                    ramWriter.addDocument(doc);
+                    total++;
+                }
             } catch (IOException e) {
                 log.error("添加索引异常", e);
             }
+        }
+        // 一个文件加载后再存入磁盘
+        try {
+            ramWriter.close();
+            indexWriter.addIndexes(ramDir);
+            indexWriter.commit();
+        } catch (IOException e) {
+            log.error("存入磁盘异常", e);
         }
         return total;
     }
@@ -200,6 +237,7 @@ public class LucenceIndex {
         doc.add(new TextField(tableNum, record.getTableNum().toString(), Field.Store.YES));
         doc.add(new TextField(fileldName, record.getFileldName(), Field.Store.YES));
         doc.add(new StringField(operSenctenceLen, record.getOperSenctenceLen().toString(), Field.Store.YES));
+        doc.add(new StringField(sqlBindValue, record.getSqlBindValue(), Field.Store.YES));
         doc.add(new StringField(rowNum, record.getRowNum().toString(), Field.Store.YES));
         doc.add(new StringField(sqlExecTime, record.getSqlExecTime().toString(), Field.Store.YES));
         doc.add(new StringField(sqlResponse, record.getSqlResponse(), Field.Store.YES));
