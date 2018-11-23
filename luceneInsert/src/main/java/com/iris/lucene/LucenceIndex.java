@@ -81,14 +81,8 @@ public class LucenceIndex {
         Charset charset = Charset.forName("utf-8");
         File file = new File(filePath);
         if (!file.exists()) {
-            try {
-                Thread.sleep(10000);
-                System.out.println("文件夹" + filePath + "不存在，睡10秒后继续");
-                log.error("文件夹" + filePath + "不存在");
-            } catch (InterruptedException e) {
-                log.error(e);
-            }
-            return;
+            file.mkdirs();
+
         }
         File[] listFiles = file.listFiles();
         if (listFiles != null && listFiles.length == 0) {

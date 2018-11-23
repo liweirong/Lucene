@@ -15,7 +15,7 @@ public class IndexDataTask implements Callable<Object> {
 
     @Override
     public Object call() {
-        if(filePath.equals("/data/lucene/auditRecord1")){
+        if(filePath.equals("/data/luceneInfoDir/auditRecord1")){
             new LucenceIndex().bulkIndex(filePath);
         }else{
             new LucenceIndex2().bulkIndex(filePath);
