@@ -1,17 +1,23 @@
 #!/bin/bash
 file_name=$1
-path="/data/luceneInfoDir/"
-#file_name="/data/audit/152326521619720180323_3k.ini"
+path="/data/luceneInfoDir/auditRecord1/"
+path2="/data/luceneInfoDir/auditRecord2/"
+
 echo "filename:$file_name"
 if [ ! -f "$file_name" ];then
 echo "source file not exit"
 exit
 fi
+
 count=0
+
 while true;do
         cur_path=$path$file_name$count
+        cur_path2=$path2$file_name$count
         cp -f $file_name $cur_path;
+        cp -f $file_name $cur_path2;
         echo $cur_path
-    sleep 1.5
+        echo $cur_path2
+    sleep 0.3
         ((count++))
 done
