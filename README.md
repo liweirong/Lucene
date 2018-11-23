@@ -10,8 +10,9 @@ lucene企业级实战-解决mysql查询慢的轻量级框架（全文检索）
 #File Structure
 ````
 lucene
-    |--- 数据插入模块 luceneInsert 
-    |--- 
+    |--- luceneInsert       数据插入模块
+    |--- luceneInsertV2.0   数据插入模块
+    |--- luceneQuery        性能检测模块
 ````
 #性能
 v1.0 性能分析：CentOS7.4、4核8G 3万条/秒<br>
