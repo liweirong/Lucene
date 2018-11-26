@@ -23,13 +23,13 @@ public class LuceneIndex2 {
     private static final Logger log = Logger.getLogger(LuceneIndex2.class);
     // 索引路径
     private static Directory dir = null;
-    private static Analyzer analyzer = null;
+    private static Analyzer analyzer ;
 
     private static IndexWriter indexWriter = null;
     private static Gson gson = new Gson();
     // 索引路径
     private static final String filePath = "/data/lucene/auditRecord2";
-    private Integer total;
+    private Integer total=0;
 
     static {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分

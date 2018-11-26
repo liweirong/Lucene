@@ -29,7 +29,7 @@ public class LuceneIndex {
     private static Gson gson = new Gson();
     // 索引路径
     private static final String filePath = "/data/lucene/auditRecord1";
-    private Integer total ;
+    private Integer total =0;
 
     static {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分
