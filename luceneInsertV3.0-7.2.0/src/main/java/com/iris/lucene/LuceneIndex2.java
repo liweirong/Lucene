@@ -2,6 +2,7 @@ package com.iris.lucene;
 
 
 import com.alibaba.fastjson.JSON;
+import com.google.gson.Gson;
 import com.iris.lucene.ik.IKAnalyzer6x;
 import com.iris.lucene.model.AuditRecordWithBLOBs;
 import org.apache.log4j.Logger;
@@ -23,15 +24,16 @@ public class LuceneIndex2 {
     private static final Logger log = Logger.getLogger(LuceneIndex2.class);
     // 索引路径
     private static Directory dir = null;
-    private static Analyzer analyzer;
+    private static Analyzer analyzer ;
 
     private static IndexWriter indexWriter = null;
+    private static Gson gson = new Gson();
     // 索引路径
     private static final String filePath = "/data/lucene/auditRecord2";
+    private Integer total=0;
 
     static {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分
-//        analyzer = new IKAnalyzer();
         try {
             dir = FSDirectory.open(Paths.get(filePath));
         } catch (IOException e) {
@@ -88,7 +90,7 @@ public class LuceneIndex2 {
         if (listFiles != null && listFiles.length == 0) {
             try {
                 Thread.sleep(3000);
-                System.out.println("没有文件，睡3秒后继续");
+                System.out.println("2没有文件，睡3秒后继续");
                 return;
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -104,8 +106,8 @@ public class LuceneIndex2 {
         for (int i = 0; i < listFiles.length; i++) {
             File fileItem = listFiles[i];
             String fileItemPath = fileItem.getPath();
-            log.info("开始处理" + fileItemPath + "文件中的数据");
-            System.out.println("开始处理" + fileItemPath + "文件中的数据");
+            log.info("2开始处理" + fileItemPath + "文件中的数据");
+            System.out.println("2开始处理" + fileItemPath + "文件中的数据");
             try (
                     FileInputStream fileIs = new FileInputStream(fileItem);
                     InputStreamReader isReader = new InputStreamReader(fileIs, charset);
@@ -138,7 +140,8 @@ public class LuceneIndex2 {
             } finally {
                 list.clear();
                 boolean delete = fileItem.delete();
-                System.out.println("删除文件" + fileItemPath + "|" + delete);
+                total++;
+                System.out.println("删除文件" + fileItemPath + "|" + delete+"|删除文件总数累计："+total);
             }
         }
         closeIndexWriter();
@@ -255,8 +258,8 @@ public class LuceneIndex2 {
      * @throws Exception
      */
     private IndexWriter getWriter() {
+
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
-        iwc.setRAMBufferSizeMB(100);
         try {
             indexWriter = new IndexWriter(dir, iwc);
         } catch (IOException e) {

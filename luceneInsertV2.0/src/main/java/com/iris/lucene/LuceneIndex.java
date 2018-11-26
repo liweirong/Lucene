@@ -1,6 +1,8 @@
 package com.iris.lucene;
 
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONReader;
 import com.google.gson.Gson;
 import com.iris.lucene.ik.IKAnalyzer6x;
 import com.iris.lucene.model.AuditRecordWithBLOBs;
@@ -23,16 +25,16 @@ public class LuceneIndex {
     private static final Logger log = Logger.getLogger(LuceneIndex.class);
     // 索引路径
     private static Directory dir = null;
-    private static Analyzer analyzer ;
+    private static Analyzer analyzer;
 
     private static IndexWriter indexWriter = null;
     private static Gson gson = new Gson();
     // 索引路径
     private static final String filePath = "/data/lucene/auditRecord1";
-    private Integer total =0;
 
     static {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分
+//        analyzer = new IKAnalyzer();
         try {
             dir = FSDirectory.open(Paths.get(filePath));
         } catch (IOException e) {
@@ -114,10 +116,8 @@ public class LuceneIndex {
             ) {
                 startTime = System.currentTimeMillis();
                 while ((record = br.readLine()) != null) {
-                    AuditRecordWithBLOBs object = gson.fromJson(record, AuditRecordWithBLOBs.class);
-//                    for (int j = 0; j < i * 10000; j++) {·
-                    list.add(object);
-//                    }
+                    AuditRecordWithBLOBs audit = JSON.parseObject(record, AuditRecordWithBLOBs.class);
+                    list.add(audit);
                 }
                 endTime = System.currentTimeMillis();
                 System.out.println("json转换：耗时" + (endTime - startTime) + "毫秒，转换" + list.size() + "条");
@@ -136,8 +136,7 @@ public class LuceneIndex {
             } finally {
                 list.clear();
                 boolean delete = fileItem.delete();
-                total ++;
-                System.out.println("删除文件" + fileItemPath + "-|-" + delete + "|删除文件累计："+total);
+                System.out.println("删除文件" + fileItemPath + "-|-" + delete);
             }
         }
         closeIndexWriter();
@@ -256,6 +255,7 @@ public class LuceneIndex {
     private IndexWriter getWriter() {
 
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
+        iwc.setRAMBufferSizeMB(100);
         try {
             indexWriter = new IndexWriter(dir, iwc);
         } catch (IOException e) {
@@ -283,4 +283,19 @@ public class LuceneIndex {
             }
         }
     }
+
+    /**
+     *      * fastJson 解析json串
+     *      * @param json
+     *      * @return
+     *      
+     */
+    private static AuditRecordWithBLOBs jsonToList(String json) {
+        JSONReader reader = new JSONReader(new StringReader(json));//已流的方式处理，这里很快
+        reader.startObject();//这边反序列化也是极速
+        AuditRecordWithBLOBs auditRecord = (AuditRecordWithBLOBs) reader.readObject();
+        reader.endObject();
+        return auditRecord;
+    }
+
 }

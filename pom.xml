@@ -12,6 +12,8 @@
         <module>luceneInsert</module>
         <module>luceneInsertV2.0</module>
         <module>luceneQuery</module>
+        <module>luceneInsertV3.0-7.2.0</module>
+        <module>luceneQueryV3.0-7.2.0</module>
     </modules>
     <properties>
         <argLine>-Dfile.encoding=UTF-8</argLine>

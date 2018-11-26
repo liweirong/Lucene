@@ -2,6 +2,8 @@ package com.iris.lucene;
 
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONReader;
+import com.google.gson.Gson;
 import com.iris.lucene.ik.IKAnalyzer6x;
 import com.iris.lucene.model.AuditRecordWithBLOBs;
 import org.apache.log4j.Logger;
@@ -19,19 +21,20 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LuceneIndex2 {
-    private static final Logger log = Logger.getLogger(LuceneIndex2.class);
+public class LuceneIndex {
+    private static final Logger log = Logger.getLogger(LuceneIndex.class);
     // 索引路径
     private static Directory dir = null;
     private static Analyzer analyzer;
 
     private static IndexWriter indexWriter = null;
+    private static Gson gson = new Gson();
     // 索引路径
-    private static final String filePath = "/data/lucene/auditRecord2";
+    private static final String filePath = "/data/lucene/auditRecord1";
+    private Integer total = 0;
 
     static {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分
-//        analyzer = new IKAnalyzer();
         try {
             dir = FSDirectory.open(Paths.get(filePath));
         } catch (IOException e) {
@@ -88,7 +91,7 @@ public class LuceneIndex2 {
         if (listFiles != null && listFiles.length == 0) {
             try {
                 Thread.sleep(3000);
-                System.out.println("没有文件，睡3秒后继续");
+                System.out.println("1没有文件，睡3秒后继续");
                 return;
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -113,11 +116,6 @@ public class LuceneIndex2 {
             ) {
                 startTime = System.currentTimeMillis();
                 while ((record = br.readLine()) != null) {
-//                    AuditRecordWithBLOBs object = gson.fromJson(record, AuditRecordWithBLOBs.class);
-////                    for (int j = 0; j < i * 10000; j++) {·
-//                    list.add(object);
-////                    }
-
                     AuditRecordWithBLOBs audit = JSON.parseObject(record, AuditRecordWithBLOBs.class);
                     list.add(audit);
                 }
@@ -138,7 +136,8 @@ public class LuceneIndex2 {
             } finally {
                 list.clear();
                 boolean delete = fileItem.delete();
-                System.out.println("删除文件" + fileItemPath + "|" + delete);
+                total++;
+                System.out.println("删除文件" + fileItemPath + "-|-" + delete + "|删除文件累计：" + total);
             }
         }
         closeIndexWriter();
@@ -171,7 +170,7 @@ public class LuceneIndex2 {
                     total++;
                 }
             } catch (IOException e) {
-                log.error("添加索引异常", e);
+                System.out.println("添加索引异常" + e);
             }
         }
         // 一个文件加载后再存入磁盘
@@ -180,7 +179,7 @@ public class LuceneIndex2 {
             indexWriter.addIndexes(ramDir);
             indexWriter.commit();
         } catch (IOException e) {
-            log.error("存入磁盘异常", e);
+            System.out.println("存入磁盘异常" + e);
         }
         return total;
     }
@@ -255,12 +254,12 @@ public class LuceneIndex2 {
      * @throws Exception
      */
     private IndexWriter getWriter() {
+
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
-        iwc.setRAMBufferSizeMB(100);
         try {
             indexWriter = new IndexWriter(dir, iwc);
         } catch (IOException e) {
-            log.error("获取IndexWriter实例异常2", e);
+            System.out.println("获取IndexWriter实例异常2"+e);
             try {
                 Thread.sleep(2000L);
                 System.out.println("后台正在入库，两秒后继续");
@@ -269,11 +268,11 @@ public class LuceneIndex2 {
             }
             indexWriter = this.getWriter();
         }
-        System.out.println("创建indexWriter");
+        System.out.println("创建indexWriter成功");
         return indexWriter;
     }
 
-    private static void closeIndexWriter() {
+    public static void closeIndexWriter() {
         if (indexWriter != null) {
             System.out.println("关闭indexWriter");
             try {
@@ -284,4 +283,19 @@ public class LuceneIndex2 {
             }
         }
     }
+
+    /**
+     *      * fastJson 解析json串
+     *      * @param json
+     *      * @return
+     *      
+     */
+    private static AuditRecordWithBLOBs jsonToList(String json) {
+        JSONReader reader = new JSONReader(new StringReader(json));//已流的方式处理，这里很快
+        reader.startObject();//这边反序列化也是极速
+        AuditRecordWithBLOBs auditRecord = (AuditRecordWithBLOBs) reader.readObject();
+        reader.endObject();
+        return auditRecord;
+    }
+
 }
