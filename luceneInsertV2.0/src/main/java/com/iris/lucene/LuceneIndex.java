@@ -255,6 +255,30 @@ public class LuceneIndex {
     private IndexWriter getWriter() {
 
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
+        System.out.println("iwc.getRAMBufferSizeMB(): " + iwc.getRAMBufferSizeMB()); // iwc.getRAMBufferSizeMB(): 16.0
+        System.out.println("iwc.getMaxBufferedDocs(): " + iwc.getMaxBufferedDocs()); // iwc.getMaxBufferedDocs(): -1
+        /**
+         *
+         * 在索引算法确定的情况下，最为影响Lucene索引速度有三个参数－－IndexWriter中的 MergeFactor, MaxMergeDocs, RAMBufferSizeMB 。这些参数无非是控制内外存交换和索引合并频率，从而达到提高索引速度。当然这些参数的设置也得依照硬件条件灵活设置。
+         * MaxMergeDocs
+         * 该参数决定写入内存索引文档个数，到达该数目后就把该内存索引写入硬盘，生成一个新的索引segment文件。
+         * 所以该参数也就是一个内存buffer，一般来说越大索引速度越快。
+         * MaxBufferedDocs这个参数默认是disabled的，因为Lucene中还用另外一个参数（RAMBufferSizeMB）控制这个bufffer的索引文档个数。
+         * 其实MaxBufferedDocs和RAMBufferSizeMB这两个参数是可以一起使用的，一起使用时只要有一个触发条件满足就写入硬盘，生成一个新的索引segment文件。
+         *
+         * RAMBufferSizeMB
+         * 控制用于buffer索引文档的内存上限，如果buffer的索引文档个数到达该上限就写入硬盘。当然，一般来说也只越大索引速度越快。
+         * 当我们对文档大小不太确定时，这个参数就相当有用，不至于outofmemory error.
+         *
+         * MergeFactor
+         * 这个参数是用于子索引（Segment）合并的。
+         * Lucene中索引总体上是这样进行，索引现写到内存，触发一定限制条件后写入硬盘，生成一个独立的子索引－lucene中叫Segment。一般来说这些子索引需要合并成一个索引，也就是optimize()，否则会影响检索速度，而且也可能导致open too many files。
+         * MergeFactor 这个参数就是控制当硬盘中有多少个子索引segments，我们就需要现把这些索引合并冲一个稍微大些的索引了。
+         * MergeFactor这个不能设置太大，特别是当MaxBufferedDocs比较小时（segment 越多），否则会导致open too many files错误，甚至导致虚拟机外面出错。
+         *
+         * Note: Lucene 中默认索引合并机制并不是两两合并，好像是多个segment 合并成最终的一个大索引，所以MergeFactor越大耗费内存越多，索引速度也会快些，但我的感觉太大譬如300，最后合并的时候还是很满。Batch indexing 应 MergeFactor>10
+
+         */
         iwc.setRAMBufferSizeMB(100);
         try {
             indexWriter = new IndexWriter(dir, iwc);
