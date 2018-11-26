@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,7 +28,7 @@ public class IndexMain {
         }
     };
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         //线程池
         executor = new ThreadPoolExecutor(CORE_POOL_SIZE,
                 MAX_POOL_SIZE,
@@ -35,11 +36,23 @@ public class IndexMain {
                 TimeUnit.SECONDS,
                 workQueue,
                 factory);
-        List<Callable<Object>> tasks1 = new ArrayList<>();
-        tasks1.add(new IndexDataTask(BASE_PATH[0]));
-        tasks1.add(new IndexDataTask(BASE_PATH[1]));
+
+
+        executor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE,
+                KEEP_ALIVE_TIME, TimeUnit.SECONDS, workQueue, factory);
+        List<Callable<Map<String, String>>> tasks = new ArrayList<>();
+
+
+        tasks.add(new IndexDataTask(BASE_PATH[0]));
+        tasks.add(new IndexDataTask(BASE_PATH[1]));
+
         while (true) {
-            executor.invokeAll(tasks1);
+            try {
+                executor.invokeAll(tasks);
+            } catch (InterruptedException e) {
+                log.error("IndexMain main", e);
+                break;
+            }
         }
 
        /* executor = new ThreadPoolExecutor(CORE_POOL_SIZE,

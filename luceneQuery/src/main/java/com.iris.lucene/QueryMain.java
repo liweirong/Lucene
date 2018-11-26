@@ -23,7 +23,7 @@ public class QueryMain {
             } else if (i == min - 1) {
                 last = total;
             }
-            Thread.sleep(60 * 1000);
+            Thread.sleep(5 * 1000);
         }
         int add = last - start;
         System.out.println(min + "分钟的采样周期内一共增长数据" + add + "条，sql/qps = " + (add / (min * 60)));
