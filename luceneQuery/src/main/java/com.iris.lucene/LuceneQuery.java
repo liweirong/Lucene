@@ -70,19 +70,20 @@ public class LuceneQuery {
 
         try {
             dir1 = FSDirectory.open(Paths.get(filePath1));
-            dir2 = FSDirectory.open(Paths.get(filePath2));
             IndexReader reader1 = DirectoryReader.open(dir1);
-            IndexReader reader2 = DirectoryReader.open(dir2);
             IndexSearcher is1 = new IndexSearcher(reader1);
-            IndexSearcher is2 = new IndexSearcher(reader2);
             total1 = is1.count(booleanQuery.build());
-            total2 = is2.count(booleanQuery.build());
+
+//            IndexReader reader2 = DirectoryReader.open(dir2);
+//            dir2 = FSDirectory.open(Paths.get(filePath2));
+//            IndexSearcher is2 = new IndexSearcher(reader2);
+//            total2 = is2.count(booleanQuery.build());
         } catch (IOException e) {
             System.out.println("检索异常"+ e);
         }
         Map<String, Object> map = new HashMap<>();
         map.put("total1", total1);
-        map.put("total2", total2);
+//        map.put("total2", total2);
         map.put("total", total1+total2);
         return map;
     }

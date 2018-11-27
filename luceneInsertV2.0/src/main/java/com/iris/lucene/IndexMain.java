@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class IndexMain {
     private static final Logger log = Logger.getLogger(IndexMain.class);
 
-    private static final String[] BASE_PATH = {"/data/luceneInfoDir/auditRecord1", "/data/luceneInfoDir/auditRecord2"};
+    private static final String BASE_PATH = "/data/luceneInfoDir/auditRecord1";
     private static final int nThreads = Runtime.getRuntime().availableProcessors();
     private static int CORE_POOL_SIZE = 2 * nThreads;
     private static int MAX_POOL_SIZE = CORE_POOL_SIZE;
@@ -43,8 +43,8 @@ public class IndexMain {
         List<Callable<Map<String, String>>> tasks = new ArrayList<>();
 
 
-        tasks.add(new IndexDataTask(BASE_PATH[0]));
-        tasks.add(new IndexDataTask(BASE_PATH[1]));
+        tasks.add(new IndexDataTask(BASE_PATH));
+//        tasks.add(new IndexDataTask(BASE_PATH[1]));
 
         while (true) {
             try {

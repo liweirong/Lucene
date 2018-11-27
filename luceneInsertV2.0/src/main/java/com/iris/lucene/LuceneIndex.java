@@ -2,12 +2,10 @@ package com.iris.lucene;
 
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONReader;
-import com.google.gson.Gson;
-import com.iris.lucene.ik.IKAnalyzer6x;
 import com.iris.lucene.model.AuditRecordWithBLOBs;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.cn.smart.SmartChineseAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -28,13 +26,12 @@ public class LuceneIndex {
     private static Analyzer analyzer;
 
     private static IndexWriter indexWriter = null;
-    private static Gson gson = new Gson();
     // 索引路径
     private static final String filePath = "/data/lucene/auditRecord1";
 
     static {
-        analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分
-//        analyzer = new IKAnalyzer();
+//        analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分
+        analyzer = new SmartChineseAnalyzer(); // true:用最大词长分词  false:最细粒度切分
         try {
             dir = FSDirectory.open(Paths.get(filePath));
         } catch (IOException e) {
@@ -104,6 +101,8 @@ public class LuceneIndex {
         long endTime;
         int initialCapacity = 10240;// list初始容量一万条
         List<AuditRecordWithBLOBs> list = new ArrayList<>(initialCapacity);
+        boolean bool = true;
+        String str = null;
         for (int i = 0; i < listFiles.length; i++) {
             File fileItem = listFiles[i];
             String fileItemPath = fileItem.getPath();
@@ -116,6 +115,7 @@ public class LuceneIndex {
             ) {
                 startTime = System.currentTimeMillis();
                 while ((record = br.readLine()) != null) {
+                    str = record;
                     AuditRecordWithBLOBs audit = JSON.parseObject(record, AuditRecordWithBLOBs.class);
                     list.add(audit);
                 }
@@ -128,6 +128,8 @@ public class LuceneIndex {
                 System.out.println("数据入库：" + (endTime - startTime) + "毫秒插入" + total + "条");
             } catch (Throwable e) {
                 e.printStackTrace();
+                System.out.println(str);
+                bool = false;
                 try {
                     indexWriter.rollback();
                 } catch (IOException e1) {
@@ -135,8 +137,10 @@ public class LuceneIndex {
                 }
             } finally {
                 list.clear();
-                boolean delete = fileItem.delete();
-                System.out.println("删除文件" + fileItemPath + "-|-" + delete);
+                if(bool){
+                    boolean delete = fileItem.delete();
+                    System.out.println("删除文件" + fileItemPath + "-|-" + delete);
+                }
             }
         }
         closeIndexWriter();
@@ -221,7 +225,7 @@ public class LuceneIndex {
         doc.add(new StringField(toolUuid, record.getToolUuid(), Field.Store.YES));
         doc.add(new StringField(ruleUuid, record.getRuleUuid(), Field.Store.YES));
         doc.add(new StringField(protectObjectUuid, record.getProtectObjectUuid(), Field.Store.YES));
-        doc.add(new StringField(sqlTemplateId, record.getSqlTemplateId().toString(), Field.Store.YES));
+        doc.add(new StringField(sqlTemplateId, String.valueOf(record.getSqlTemplateId()), Field.Store.YES));
         doc.add(new StringField(operTypeId, record.getOperTypeId().toString(), Field.Store.YES));
         doc.add(new StringField(logUser, record.getLogUser(), Field.Store.YES));
         doc.add(new TextField(applicationAccount, record.getApplicationAccount(), Field.Store.YES));
@@ -306,20 +310,6 @@ public class LuceneIndex {
                 e.printStackTrace();
             }
         }
-    }
-
-    /**
-     *      * fastJson 解析json串
-     *      * @param json
-     *      * @return
-     *      
-     */
-    private static AuditRecordWithBLOBs jsonToList(String json) {
-        JSONReader reader = new JSONReader(new StringReader(json));//已流的方式处理，这里很快
-        reader.startObject();//这边反序列化也是极速
-        AuditRecordWithBLOBs auditRecord = (AuditRecordWithBLOBs) reader.readObject();
-        reader.endObject();
-        return auditRecord;
     }
 
 }

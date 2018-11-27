@@ -16,11 +16,7 @@ public class IndexDataTask implements Callable<Map<String, String>> {
 
     @Override
     public Map<String, String> call() {
-        if(filePath.equals("/data/luceneInfoDir/auditRecord1")){
-            new LuceneIndex().bulkIndex(filePath);
-        }else{
-            new LuceneIndex2().bulkIndex(filePath);
-        }
+        new LuceneIndex().bulkIndex(filePath);
         return null;
     }
 
