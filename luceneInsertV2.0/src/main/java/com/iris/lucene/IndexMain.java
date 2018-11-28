@@ -12,9 +12,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class IndexMain {
     private static final Logger log = Logger.getLogger(IndexMain.class);
 
-    private static final String BASE_PATH = "/data/luceneInfoDir/auditRecord1";
-    private static final int nThreads = Runtime.getRuntime().availableProcessors();
-    private static int CORE_POOL_SIZE = 2 * nThreads;
+    private static final String[] BASE_PATH = {"/data/luceneInfoDir/auditRecord1","/data/luceneInfoDir/auditRecord2","/data/luceneInfoDir/auditRecord3","/data/luceneInfoDir/auditRecord4"};
+//    private static final int nThreads = Runtime.getRuntime().availableProcessors();
+    private static int CORE_POOL_SIZE = BASE_PATH.length ;
     private static int MAX_POOL_SIZE = CORE_POOL_SIZE;
     private static int KEEP_ALIVE_TIME = 30 * 1000;
     private static ThreadPoolExecutor executor;
@@ -29,6 +29,7 @@ public class IndexMain {
     };
 
     public static void main(String[] args) {
+        System.out.println("CORE_POOL_SIZE:"+CORE_POOL_SIZE);
         //线程池
         executor = new ThreadPoolExecutor(CORE_POOL_SIZE,
                 MAX_POOL_SIZE,
@@ -43,8 +44,10 @@ public class IndexMain {
         List<Callable<Map<String, String>>> tasks = new ArrayList<>();
 
 
-        tasks.add(new IndexDataTask(BASE_PATH));
-//        tasks.add(new IndexDataTask(BASE_PATH[1]));
+        tasks.add(new IndexDataTask(BASE_PATH[0],executor));
+        tasks.add(new IndexDataTask(BASE_PATH[1],executor));
+        tasks.add(new IndexDataTask(BASE_PATH[2],executor));
+        tasks.add(new IndexDataTask(BASE_PATH[3],executor));
 
         while (true) {
             try {

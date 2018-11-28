@@ -1,16 +1,15 @@
 package com.iris.lucene;
 
 
-import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 
-public class LuceneIndex extends BaseIndex {
+public class LuceneIndex4 extends BaseIndex {
     // 索引路径
-    private static final String filePath = "/data/lucene/auditRecord1";
-    public static IndexWriter indexWriter = null;
+    private static final String filePath = "/data/lucene/auditRecord4";
+
     static {
         try {
             dir = FSDirectory.open(Paths.get(filePath));
@@ -18,5 +17,4 @@ public class LuceneIndex extends BaseIndex {
             System.out.println("创建索引失败" + e);
         }
     }
-
 }
