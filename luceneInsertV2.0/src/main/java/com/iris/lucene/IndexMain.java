@@ -29,7 +29,6 @@ public class IndexMain {
     };
 
     public static void main(String[] args) {
-        System.out.println("CORE_POOL_SIZE:"+CORE_POOL_SIZE);
         //线程池
         executor = new ThreadPoolExecutor(CORE_POOL_SIZE,
                 MAX_POOL_SIZE,
@@ -44,10 +43,10 @@ public class IndexMain {
         List<Callable<Map<String, String>>> tasks = new ArrayList<>();
 
 
-        tasks.add(new IndexDataTask(BASE_PATH[0],executor));
-        tasks.add(new IndexDataTask(BASE_PATH[1],executor));
-        tasks.add(new IndexDataTask(BASE_PATH[2],executor));
-        tasks.add(new IndexDataTask(BASE_PATH[3],executor));
+        tasks.add(new IndexDataTask(BASE_PATH[0]));
+//        tasks.add(new IndexDataTask(BASE_PATH[1]));
+//        tasks.add(new IndexDataTask(BASE_PATH[2]));
+//        tasks.add(new IndexDataTask(BASE_PATH[3]));
 
         while (true) {
             try {
