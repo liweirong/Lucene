@@ -160,7 +160,7 @@ public class LuceneUpdate extends BaseIndex {
             IndexReader reader4 = DirectoryReader.open(dir4);
             total4 = reader4.maxDoc();
 
-            MultiReader multiReader = new MultiReader(reader1, reader3, reader4);
+            MultiReader multiReader = new MultiReader(reader1, reader2, reader3, reader4);
             total = multiReader.maxDoc();//所有文档数
             IndexSearcher is = new IndexSearcher(multiReader);
             TopDocs search = is.search(booleanQuery.build(), 4);
