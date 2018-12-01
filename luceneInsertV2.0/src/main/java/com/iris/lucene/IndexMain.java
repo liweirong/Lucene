@@ -44,9 +44,9 @@ public class IndexMain {
 
 
         tasks.add(new IndexDataTask(BASE_PATH[0]));
-//        tasks.add(new IndexDataTask(BASE_PATH[1]));
-//        tasks.add(new IndexDataTask(BASE_PATH[2]));
-//        tasks.add(new IndexDataTask(BASE_PATH[3]));
+        tasks.add(new IndexDataTask(BASE_PATH[1]));
+        tasks.add(new IndexDataTask(BASE_PATH[2]));
+        tasks.add(new IndexDataTask(BASE_PATH[3]));
 
         while (true) {
             try {
@@ -56,25 +56,5 @@ public class IndexMain {
                 break;
             }
         }
-
-       /* executor = new ThreadPoolExecutor(CORE_POOL_SIZE,
-                MAX_POOL_SIZE,
-                KEEP_ALIVE_TIME,
-                TimeUnit.SECONDS,
-                workQueue,
-                factory);
-        System.out.println(CORE_POOL_SIZE);
-        List<Callable<Map<String, String>>> tasks = new ArrayList<>();
-        tasks.add(new IndexDataTask(BASE_PATH_1));
-
-        while (true) {
-            try {
-                executor.invokeAll(tasks);
-            } catch (InterruptedException e) {
-                log.error("IndexMain main", e);
-                break;
-            }
-        }*/
-
     }
 }

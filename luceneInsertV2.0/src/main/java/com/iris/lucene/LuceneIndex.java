@@ -19,13 +19,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LuceneIndex {
+public class LuceneIndex extends BaseIndex {
     private static final Logger log = Logger.getLogger(LuceneIndex.class);
     // 索引路径
     private static final String indexPath = "/data/lucene/auditRecord1";
     private static Directory dir = null;
     private static Analyzer analyzer;
-    private static int initialCapacity = 10240;// list初始容量一万条
+    private static int initialCapacity = 102400;// list初始容量一万条
     private static IndexWriter indexWriter = null;
     private static Charset charset = Charset.forName("utf-8");
 
@@ -181,7 +181,7 @@ public class LuceneIndex {
      *
      * @param record
      * @return
-     */
+     *//*
     private static Document getDoc(AuditRecordWithBLOBs record) {
         // 1 建立文档
         Document doc = new Document();
@@ -218,7 +218,7 @@ public class LuceneIndex {
         doc.add(new StringField(extendB, record.getExtendB(), Field.Store.YES));
         doc.add(new StringField(extendC, record.getExtendC(), Field.Store.YES));
         return doc;
-    }
+    }*/
 
 
     /**

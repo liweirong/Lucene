@@ -9,7 +9,7 @@ public class BaseIndex {
     private static final Logger log = Logger.getLogger(BaseIndex.class);
 
 
-    static int initialCapacity = 102400;// list初始容量一万条
+    static int initialCapacity = 10240;// list初始容量一万条
 
 
     /**

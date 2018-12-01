@@ -25,9 +25,11 @@ public class LuceneIndex2  {
     private static final String indexPath = "/data/lucene/auditRecord2";
     private static Directory dir = null;
     private static Analyzer analyzer;
-    private static int initialCapacity = 10240;// list初始容量一万条
+    private static int initialCapacity = 102400;// list初始容量一万条
     private static IndexWriter indexWriter = null;
     private static Charset charset = Charset.forName("utf-8");
+    private static long startTime;
+    private static long endTime;
     static {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分 20000
 //        analyzer = new SmartChineseAnalyzer();  //26000
@@ -107,19 +109,19 @@ public class LuceneIndex2  {
                     InputStreamReader isReader = new InputStreamReader(fileIs, charset);
                     BufferedReader br = new BufferedReader(isReader)
             ) {
-//                startTime = System.currentTimeMillis();
+                startTime = System.currentTimeMillis();
                 while ((record = br.readLine()) != null) {
                     AuditRecordWithBLOBs audit = JSON.parseObject(record, AuditRecordWithBLOBs.class);
                     list.add(audit);
                 }
-//                endTime = System.currentTimeMillis();
-//                System.out.println("json转换：耗时" + (endTime - startTime) + "毫秒，转换" + list.size() + "条");
+                endTime = System.currentTimeMillis();
+                System.out.println("json转换：耗时" + (endTime - startTime) + "毫秒，转换" + list.size() + "条");
 
-//                startTime = System.currentTimeMillis();
+                startTime = System.currentTimeMillis();
                 int total = insert(list, indexWriter);
-//                endTime = System.currentTimeMillis();
-//                System.out.println("数据入库：" + (endTime - startTime) + "毫秒插入" + total + "条");
-                System.out.println("数据入库：" + total + "条");
+                endTime = System.currentTimeMillis();
+                System.out.println("数据入库：" + (endTime - startTime) + "毫秒插入" + total + "条");
+//                System.out.println("数据入库：" + total + "条");
             } catch (Throwable e) {
                 System.out.println(e);
                 try {
@@ -169,7 +171,10 @@ public class LuceneIndex2  {
         try {
             ramWriter.close();
             indexWriter.addIndexes(ramDir);
+            startTime = System.currentTimeMillis();
             indexWriter.commit();
+            endTime = System.currentTimeMillis();
+            System.out.println("commit：" + (endTime - startTime) + "毫秒" + total + "条");
         } catch (IOException e) {
             System.out.println("存入磁盘异常" + e);
         }

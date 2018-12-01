@@ -25,7 +25,7 @@ public class LuceneIndex4 {
     private static final String indexPath = "/data/lucene/auditRecord4";
     private static Directory dir = null;
     private static Analyzer analyzer;
-    private static int initialCapacity = 10240;// list初始容量一万条
+    private static int initialCapacity = 102400;// list初始容量一万条
     private static IndexWriter indexWriter = null;
     private static Charset charset = Charset.forName("utf-8");
     static {

@@ -9,43 +9,34 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>luceneQueryV3.0-7.2.0</artifactId>
+    <artifactId>luceneUpdate</artifactId>
 
-    <properties>
-        <argLine>-Dfile.encoding=UTF-8</argLine>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.8</java.version>
-        <!--luceneInsert模块版本 start-->
-        <gson.version>2.3.1</gson.version>
-        <lucenen.version>7.2.0</lucenen.version>
-        <!--luceneInsert模块版本 end-->
-    </properties>
     <dependencies>
         <!--加入lucene-->
         <!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-core -->
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
-            <version>${lucenen.version}</version>
+            <version>${lucene.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-queryparser -->
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-queryparser</artifactId>
-            <version>${lucenen.version}</version>
+            <version>${lucene.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-analyzers-common -->
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-analyzers-common</artifactId>
-            <version>${lucenen.version}</version>
+            <version>${lucene.version}</version>
         </dependency>
         <!--lucene中文分词-->
         <!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-analyzers-smartcn -->
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-analyzers-smartcn</artifactId>
-            <version>${lucenen.version}</version>
+            <version>${lucene.version}</version>
         </dependency>
         <dependency>
             <groupId>com.janeluo</groupId>
@@ -94,11 +85,6 @@
             <version>2.9.5</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.20</version>
-        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -120,7 +106,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.iris.lucene.QueryMain</mainClass>
+                            <mainClass>com.iris.lucene.UpdateMain</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -136,5 +122,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
