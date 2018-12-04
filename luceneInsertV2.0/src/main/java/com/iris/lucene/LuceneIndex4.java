@@ -3,10 +3,10 @@ package com.iris.lucene;
 
 import com.alibaba.fastjson.JSON;
 import com.iris.lucene.ik.IKAnalyzer6x;
-import com.iris.lucene.model.AuditRecordWithBLOBs;
+import com.iris.lucene.model.AuditRecordLucene;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
@@ -19,59 +19,23 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LuceneIndex4 {
+public class LuceneIndex4 extends BaseIndex{
     private static final Logger log = Logger.getLogger(LuceneIndex4.class);
     // 索引路径
     private static final String indexPath = "/data/lucene/auditRecord4";
     private static Directory dir = null;
     private static Analyzer analyzer;
-    private static int initialCapacity = 102400;// list初始容量一万条
+    private static int initialCapacity = 10240;// list初始容量一万条
     private static IndexWriter indexWriter = null;
     private static Charset charset = Charset.forName("utf-8");
     static {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分 20000
-//        analyzer = new SmartChineseAnalyzer();  //26000
-//        analyzer = new StandardAnalyzer(); // 43425
         try {
             dir = FSDirectory.open(Paths.get(indexPath));
         } catch (IOException e) {
 
         }
     }
-
-    /**
-     * 表字段开始
-     */
-    private static final String id = "id";
-    private static final String riskLev = "riskLev";
-    private static final String operSentence = "operSentence";
-    private static final String happenTime = "happenTime";
-    private static final String mainUuid = "mainUuid";
-    private static final String guestUuid = "guestUuid";
-    private static final String toolUuid = "toolUuid";
-    private static final String ruleUuid = "ruleUuid";
-    private static final String protectObjectUuid = "protectObjectUuid";
-    private static final String sqlTemplateId = "sqlTemplateId";
-    private static final String operTypeId = "operTypeId";
-    private static final String logUser = "logUser";
-    private static final String applicationAccount = "applicationAccount";
-    private static final String srcPort = "srcPort";
-    private static final String sessionId = "sessionId";
-    private static final String dbName = "dbName";
-    private static final String tableName = "tableName";
-    private static final String tableNum = "tableNum";
-    private static final String fileldName = "fileldName";
-    private static final String operSenctenceLen = "operSenctenceLen";
-    private static final String sqlBindValue = "sqlBindValue";
-    private static final String rowNum = "rowNum";
-    private static final String sqlExecTime = "sqlExecTime";
-    private static final String sqlResponse = "sqlResponse";
-    private static final String returnContent = "returnContent";
-    private static final String returnContentLen = "returnContentLen";
-    private static final String dealState = "dealState";
-    private static final String extendA = "extendA";
-    private static final String extendB = "extendB";
-    private static final String extendC = "extendC";
 
     /**
      * @param filePath 文件位置
@@ -96,7 +60,7 @@ public class LuceneIndex4 {
         }
 
         indexWriter = getWriter();
-        List<AuditRecordWithBLOBs> list = new ArrayList<>(initialCapacity);
+        List<AuditRecordLucene> list = new ArrayList<>(initialCapacity);
         for (int i = 0; i < listFiles.length; i++) {
             File fileItem = listFiles[i];
 //            String fileItemPath = fileItem.getPath();
@@ -109,7 +73,7 @@ public class LuceneIndex4 {
             ) {
 //                startTime = System.currentTimeMillis();
                 while ((record = br.readLine()) != null) {
-                    AuditRecordWithBLOBs audit = JSON.parseObject(record, AuditRecordWithBLOBs.class);
+                    AuditRecordLucene audit = JSON.parseObject(record, AuditRecordLucene.class);
                     list.add(audit);
                 }
 //                endTime = System.currentTimeMillis();
@@ -143,7 +107,7 @@ public class LuceneIndex4 {
      * @param indexWriter indexWriter
      * @return 总数
      */
-    public static int insert(List<AuditRecordWithBLOBs> list, IndexWriter indexWriter) {
+    public static int insert(List<AuditRecordLucene> list, IndexWriter indexWriter) {
         int total = 0;
         RAMDirectory ramDir = new RAMDirectory();
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
@@ -174,50 +138,6 @@ public class LuceneIndex4 {
             System.out.println("存入磁盘异常" + e);
         }
         return total;
-    }
-
-    /**
-     * 得到单个的文档
-     *
-     * @param record
-     * @return
-     */
-    private static Document getDoc(AuditRecordWithBLOBs record) {
-        // 1 建立文档
-        Document doc = new Document();
-        doc.add(new StringField(id, String.valueOf(record.getId()), Field.Store.YES));
-        doc.add(new NumericDocValuesField(happenTime, record.getHappenTime())); // 只有这种域才能排序
-        doc.add(new LongPoint(happenTime, record.getHappenTime())); // NumericDocValuesField为LongPoint类型建立正排索引用于排序 聚合，不存储内容
-        doc.add(new StoredField(happenTime, record.getHappenTime())); // 存储内容
-        doc.add(new StringField(riskLev, record.getRiskLev().toString(), Field.Store.YES));
-        doc.add(new TextField(operSentence, record.getOperSentence(), Field.Store.YES));
-        doc.add(new StringField(mainUuid, record.getMainUuid(), Field.Store.YES));
-        doc.add(new StringField(guestUuid, record.getGuestUuid(), Field.Store.YES));
-        doc.add(new StringField(toolUuid, record.getToolUuid(), Field.Store.YES));
-        doc.add(new StringField(ruleUuid, record.getRuleUuid(), Field.Store.YES));
-        doc.add(new StringField(protectObjectUuid, record.getProtectObjectUuid(), Field.Store.YES));
-        doc.add(new StringField(sqlTemplateId, String.valueOf(record.getSqlTemplateId()), Field.Store.YES));
-        doc.add(new StringField(operTypeId, record.getOperTypeId().toString(), Field.Store.YES));
-        doc.add(new StringField(logUser, record.getLogUser(), Field.Store.YES));
-        doc.add(new TextField(applicationAccount, record.getApplicationAccount(), Field.Store.YES));
-        doc.add(new StringField(srcPort, record.getSrcPort().toString(), Field.Store.YES));
-        doc.add(new StringField(sessionId, record.getSessionId(), Field.Store.YES));
-        doc.add(new StringField(dbName, record.getDbName(), Field.Store.YES));
-        doc.add(new StringField(tableName, record.getTableName(), Field.Store.YES));
-        doc.add(new TextField(tableNum, record.getTableNum().toString(), Field.Store.YES));
-        doc.add(new TextField(fileldName, record.getFileldName(), Field.Store.YES));
-        doc.add(new StringField(operSenctenceLen, record.getOperSenctenceLen().toString(), Field.Store.YES));
-        doc.add(new StringField(sqlBindValue, record.getSqlBindValue(), Field.Store.YES));
-        doc.add(new StringField(rowNum, record.getRowNum().toString(), Field.Store.YES));
-        doc.add(new StringField(sqlExecTime, record.getSqlExecTime().toString(), Field.Store.YES));
-        doc.add(new StringField(sqlResponse, record.getSqlResponse(), Field.Store.YES));
-        doc.add(new TextField(returnContent, record.getReturnContent(), Field.Store.YES));
-        doc.add(new StringField(returnContentLen, record.getReturnContentLen().toString(), Field.Store.YES));
-        doc.add(new StringField(dealState, record.getDealState().toString(), Field.Store.YES));
-        doc.add(new StringField(extendA, record.getExtendA(), Field.Store.YES));
-        doc.add(new StringField(extendB, record.getExtendB(), Field.Store.YES));
-        doc.add(new StringField(extendC, record.getExtendC(), Field.Store.YES));
-        return doc;
     }
 
 
