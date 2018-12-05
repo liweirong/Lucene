@@ -53,6 +53,7 @@ public class LuceneQuery {
 
         // 操作语句
         Query opQuery;
+//        String keyWord = "科技";
         String keyWord = "你的";
         String[] keyWords = keyWord.split("&");// 多个关键字用& 隔开取交集,其他情况是并集
         int size = keyWords.length;
@@ -90,7 +91,7 @@ public class LuceneQuery {
 //            total4 = reader4.maxDoc();
 
             MultiReader multiReader = new MultiReader(reader1, reader2, reader3, reader4);
-//            total = multiReader.maxDoc();//所有文档数
+            total = multiReader.maxDoc();//所有文档数
             System.out.println("audit_record中所有文档数:" + total);
             indexSearcher = new IndexSearcher(multiReader);
         } catch (IOException e) {
