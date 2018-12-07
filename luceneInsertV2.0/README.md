@@ -32,3 +32,6 @@ Locing
    如果并行操作， lucene会抛出异常，可以通过设置-DdisableLuceneLocks=true来禁止locking，这样做一般来说很危险，
    除非你有操作系 统或者物理级别的只读保证，比如把index文件刻盘到CDROM上。
 ```
+
+
+[Lucene 6.0 实战-索引热备份及恢复]!(http://www.open-open.com/lib/view/open1479974721215.html#articleHeader4)
