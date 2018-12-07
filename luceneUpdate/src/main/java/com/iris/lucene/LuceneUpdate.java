@@ -21,7 +21,7 @@ import static org.apache.lucene.search.BooleanClause.Occur.MUST;
 
 public class LuceneUpdate extends BaseIndex {
     //    private static final String[] filePath = {"/data/lucene/auditRecord1", "/data/lucene/auditRecord2", "/data/lucene/auditRecord3", "/data/lucene/auditRecord4"};
-    private static final String[] filePath = {"/data/lucene/auditRecord5", "/data/lucene/auditRecord2", "/data/lucene/auditRecord3", "/data/lucene/auditRecord4"};
+    private static final String[] filePath = {"/data/lucene/auditRecord1", "/data/lucene/auditRecord2", "/data/lucene/auditRecord3", "/data/lucene/auditRecord4"};
     private static Directory dir = null;
     private static Directory dir1 = null;
     private static Directory dir2 = null;
@@ -36,20 +36,22 @@ public class LuceneUpdate extends BaseIndex {
     /**
      * 检查一下索引文件
      */
-    public static void check(int i) {
+    public static void check() {
         IndexReader indexReader = null;
         try {
-            dir = FSDirectory.open(Paths.get(filePath[i]));
-            indexReader = DirectoryReader.open(dir);
-            // 通过reader可以有效的获取到文档的数量
-            // 有效的索引文档
-            System.out.println(filePath[i] + "-------------------------");
-            System.out.println("有效的索引文档:" + indexReader.numDocs());
-            // 总共的索引文档
-            System.out.println("总共的索引文档:" + indexReader.maxDoc());
-            // 删掉的索引文档，其实不恰当，应该是在回收站里的索引文档
-            System.out.println("删掉的索引文档:" + indexReader.numDeletedDocs());
-            System.out.println("-------------------------------------");
+            for (String path :  filePath) {
+                dir = FSDirectory.open(Paths.get(path));
+                indexReader = DirectoryReader.open(dir);
+                // 有效的索引文档
+                System.out.println(path + "-------------------------");
+                // 通过reader可以有效的获取到文档的数量
+                // 总共的索引文档
+                System.out.println("总共的索引文档:" + indexReader.maxDoc());
+                System.out.println("有效的索引文档:" + indexReader.numDocs());
+                // 删掉的索引文档，其实不恰当，应该是在回收站里的索引文档
+                System.out.println("删掉的索引文档:" + indexReader.numDeletedDocs());
+                System.out.println("-------------------------------------");
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

@@ -9,47 +9,10 @@ public class BaseIndex {
     private static final Logger log = Logger.getLogger(BaseIndex.class);
 
     /**
-     * 1.1.2	audit_record审计记录(lucene)
-     * 索引：lucene使用全文索引
-     * 全部字段不能为空，使用空格代替空字符串
-     * 字段名	数据类型				索引	非空	描述	备注
-     * id	LongField						时间戳（单位：s 前10）+风险等级（0/1/2/3/4）+随机四位'	自定义id
-     * happenTime	LongField						发生时间
-     * srcIp 	LongField						客户端IP
-     * srcPort	int						客户端端口
-     * srcMac	StringField						客户端MAC地址
-     * systemUser	StringField						客户端操作系统用户名
-     * systemHost	StringField						客户端操作系统主机名
-     * destIp	LongField						服务端IP
-     * destPort	int						服务端端口
-     * destMac	StringField						服务端MAC地址
-     * visitTool	StringField						访问工具
-     * appAccount	StringField						应用账户	工具登录账号例：工号
-     * sessionId	LongField						会话id
-     * dbType	int						数据库类型
-     * dbUser	StringField						数据库用户
-     * operType	int						操作类型
-     * dbName	StringField						数据库名
-     * tableName	TextField						表名	逗号隔开
-     * fieldName	TextField						字段名	逗号隔开
-     * operSentence	TextField						操作语句
-     * operSentenceLen	int						操作语句长度
-     * sqlBindValue	TextField						Sql绑定变量
-     * rowNum	int						返回结果行数
-     * sqlExecTime	FloatField						语句执行时间	毫秒
-     * sqlResponse	int						语句执行回应	返回状态码
-     * returnContent	TextField						返回结果
-     * returnContentLen	int						返回结果长度
-     * dealState	int						处理状态	0：未处理1：已处理
-     * protectObjectName	StringField						保护对象名
-     * ruleName	StringField						规则名称
-     * riskLev	int						风险等级	0、1、2、3、4
-     */
-    /**
      * 表字段开始
      */
-    private static final String id = "id";
-    private static final String happenTime = "happenTime";
+    public static final String id = "id";
+    public static final String happenTime = "happenTime";
     private static final String srcIp = "srcIp";
     private static final String srcPort = "srcPort";
     private static final String srcMac = "srcMac";
@@ -68,14 +31,14 @@ public class BaseIndex {
     private static final String tableName = "tableName";
     private static final String tableNum = "tableNum";
     private static final String fieldName = "fieldName";
-    private static final String operSentence = "operSentence";
+    public static final String operSentence = "operSentence";
     private static final String operSentenceLen = "operSentenceLen";
     private static final String rowNum = "rowNum";
     private static final String sqlExecTime = "sqlExecTime";
     private static final String sqlResponse = "sqlResponse";
     private static final String returnContent = "returnContent";
     private static final String returnContentLen = "returnContentLen";
-    private static final String dealState = "dealState";
+    public static final String dealState = "dealState";
     private static final String protectObjectName = "protectObjectName";
     private static final String ruleName = "ruleName";
     private static final String riskLev = "riskLev";

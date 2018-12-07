@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class LuceneQuery {
+public class LuceneQuery extends  BaseIndex{
 
     private static final String[] filePath = {"/data/lucene/auditRecord1", "/data/lucene/auditRecord2", "/data/lucene/auditRecord3", "/data/lucene/auditRecord4"};
     private Directory dir1 = null;
@@ -128,28 +128,8 @@ public class LuceneQuery {
             AuditRecordWithBLOBs auditRecord = new AuditRecordWithBLOBs();
             auditRecord.setId(doc.get(id));
             auditRecord.setHappenTime(Long.valueOf(doc.get(happenTime)));
-            auditRecord.setMainUuid(doc.get(mainUuid));
-            auditRecord.setSrcPort(Integer.valueOf(doc.get(srcPort)));
-            auditRecord.setSessionId(doc.get(sessionId));
-            auditRecord.setOperTypeId(Byte.valueOf(doc.get(operTypeId)));
-            auditRecord.setDbName(doc.get(dbName));
-            auditRecord.setTableName(doc.get(tableName));
-            auditRecord.setTableNum(Integer.valueOf(doc.get(tableNum)));
-            auditRecord.setFileldName(doc.get(fileldName));
-            auditRecord.setOperSenctenceLen(Integer.valueOf(doc.get(operSenctenceLen)));
             auditRecord.setOperSentence(doc.get(operSentence));
-            auditRecord.setRowNum(Integer.valueOf(doc.get(rowNum)));
-            auditRecord.setSqlExecTime(Double.valueOf(doc.get(sqlExecTime)));
-            auditRecord.setSqlResponse(doc.get(sqlResponse));
-            auditRecord.setReturnContent(doc.get(returnContent));
-            auditRecord.setReturnContentLen(Integer.valueOf(doc.get(returnContentLen)));
             auditRecord.setDealState(Byte.valueOf(doc.get(dealState)));
-            auditRecord.setProtectObjectUuid(doc.get(protectObjectUuid));
-            auditRecord.setRuleUuid(doc.get(ruleUuid));
-            auditRecord.setRiskLev(Byte.valueOf(doc.get(riskLev)));
-            auditRecord.setExtendA(doc.get(extendA));
-            auditRecord.setExtendB(doc.get(extendB));
-            auditRecord.setExtendC(doc.get(extendC));
             resultList.add(auditRecord);
         }
 
@@ -160,40 +140,6 @@ public class LuceneQuery {
 
         return map;
     }
-
-    /**
-     * 表字段开始
-     */
-    public static final String id = "id";
-    public static final String riskLev = "riskLev";
-    public static final String operSentence = "operSentence";
-    public static final String happenTime = "happenTime";
-    public static final String mainUuid = "mainUuid";
-    public static final String guestUuid = "guestUuid";
-    public static final String toolUuid = "toolUuid";
-    public static final String ruleUuid = "ruleUuid";
-    public static final String protectObjectUuid = "protectObjectUuid";
-    public static final String sqlTemplateId = "sqlTemplateId";
-    public static final String operTypeId = "operTypeId";
-    public static final String logUser = "logUser";
-    public static final String applicationAccount = "applicationAccount";
-    public static final String srcPort = "srcPort";
-    public static final String sessionId = "sessionId";
-    public static final String dbName = "dbName";
-    public static final String tableName = "tableName";
-    public static final String tableNum = "tableNum";
-    public static final String fileldName = "fileldName";
-    public static final String operSenctenceLen = "operSenctenceLen";
-    public static final String sqlBindValue = "sqlBindValue";
-    public static final String rowNum = "rowNum";
-    public static final String sqlExecTime = "sqlExecTime";
-    public static final String sqlResponse = "sqlResponse";
-    public static final String returnContent = "returnContent";
-    public static final String returnContentLen = "returnContentLen";
-    public static final String dealState = "dealState";
-    public static final String extendA = "extendA";
-    public static final String extendB = "extendB";
-    public static final String extendC = "extendC";
 
 
 }

@@ -1,14 +1,16 @@
 package com.iris.lucene;
 
+import java.io.IOException;
+
 /**
  * 先把索引文件删除，重新建索引
  */
 public class UpdateMain {
-    public static void main(String[] args) {
-        Long start = System.currentTimeMillis();
-                LuceneUpdate.query("防统方");
-        Long end = System.currentTimeMillis();
-        System.out.println("关键字查询耗时" + (end - start));
+    public static void main(String[] args) throws IOException {
+//        Long start = System.currentTimeMillis();
+//                LuceneUpdate.query("防统方");
+//        Long end = System.currentTimeMillis();
+//        System.out.println("关键字查询耗时" + (end - start));
 
 //        LuceneUpdate.insert(audit, i);
 //        System.out.println("开始修改");
@@ -26,6 +28,14 @@ public class UpdateMain {
 //        LuceneUpdate.update(audit);
 //        end = System.currentTimeMillis();
 //        System.out.println("更新耗时" + (end - start));
+        System.out.println("删除前check：%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        LuceneUpdate.check();
+        Long start = System.currentTimeMillis();
+        LuceneDelete.delete();
+        Long end = System.currentTimeMillis();
+        System.out.println("删除数据耗时" + (end - start)+"ms         |||||||||||||||||||||||||||||||||");
+        System.out.println("删除后check：%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        LuceneUpdate.check();
 
     }
 
