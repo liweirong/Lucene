@@ -1,9 +1,7 @@
 package com.iris.lucene;
 
 
-import com.alibaba.fastjson.JSON;
 import com.iris.lucene.ik.IKAnalyzer6x;
-import com.iris.lucene.model.AuditRecordLucene;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -19,15 +17,17 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LuceneIndex extends BaseIndex {
+public class LuceneIndex extends BaseIndexNew {
     private static final Logger log = Logger.getLogger(LuceneIndex.class);
     // 索引路径
     private static final String indexPath = "/data/lucene/auditRecord1";
     private static Directory dir = null;
     private static Analyzer analyzer;
-    private static int initialCapacity = 10240;// list初始容量一万条
+
     private static IndexWriter indexWriter = null;
     private static Charset charset = Charset.forName("utf-8");
+    private static Long startTime;
+    private static Long endTime;
 
     static {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分 20000
@@ -43,7 +43,6 @@ public class LuceneIndex extends BaseIndex {
      * @param filePath 文件位置
      */
     public static void bulkIndex(String filePath) {
-        String record;
 
         File file = new File(filePath);
         if (!file.exists()) {
@@ -62,7 +61,7 @@ public class LuceneIndex extends BaseIndex {
         }
 
         indexWriter = getWriter();
-        List<AuditRecordLucene> list = new ArrayList<>(initialCapacity);
+        List<String> list = new ArrayList<>(initialCapacity);
         for (int i = 0; i < listFiles.length; i++) {
             File fileItem = listFiles[i];
 //            String fileItemPath = fileItem.getPath();
@@ -73,15 +72,15 @@ public class LuceneIndex extends BaseIndex {
                     InputStreamReader isReader = new InputStreamReader(fileIs, charset);
                     BufferedReader br = new BufferedReader(isReader)
             ) {
-//                startTime = System.currentTimeMillis();
+                startTime = System.currentTimeMillis();
+                String record;
                 while ((record = br.readLine()) != null) {
-                    AuditRecordLucene audit = JSON.parseObject(record, AuditRecordLucene.class);
-                    list.add(audit);
+                    list.add(record);
                 }
-//                endTime = System.currentTimeMillis();
-//                System.out.println("json转换：耗时" + (endTime - startTime) + "毫秒，转换" + list.size() + "条");
+                endTime = System.currentTimeMillis();
+                System.out.println("json转换：耗时" + (endTime - startTime) + "毫秒，转换" + list.size() + "条");
 
-//                startTime = System.currentTimeMillis();
+                startTime = System.currentTimeMillis();
                 int total = insert(list, indexWriter);
 //                endTime = System.currentTimeMillis();
                 System.out.println(filePath + "数据入库：" + total + "条");
@@ -108,7 +107,7 @@ public class LuceneIndex extends BaseIndex {
      * @param indexWriter indexWriter
      * @return 总数
      */
-    public static int insert(List<AuditRecordLucene> list, IndexWriter indexWriter) {
+    public static int insert(List<String> list, IndexWriter indexWriter) {
         int total = 0;
         RAMDirectory ramDir = new RAMDirectory();
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
@@ -119,6 +118,7 @@ public class LuceneIndex extends BaseIndex {
             e.printStackTrace();
         }
         // 添加索引进内存
+        // 1 建立文档
         for (int i = 0; i < list.size(); i++) {
             Document doc = getDoc(list.get(i));
             try {
