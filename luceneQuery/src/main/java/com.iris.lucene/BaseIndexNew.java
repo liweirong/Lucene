@@ -91,6 +91,10 @@ public class BaseIndexNew {
 
 
         doc.add(new StoredField(riskLev, Integer.valueOf(str[2])));
+
+//
+//        doc.add(new SortedSetDocValuesFacetField(id, "Lisa"));
+//        doc.add(new SortedSetDocValuesFacetField("Publish Year", "2010"));
         return doc;
     }
 }

@@ -117,6 +117,7 @@ public class BaseIndexNew {
         Document doc  = new Document();
         doc.add(new LongPoint(id, Long.valueOf(str[0])));
         doc.add(new StoredField(id, Long.valueOf(str[0])));
+//        doc.add(new DoubleDocValuesField(id, Long.valueOf(str[0])));
 
         doc.add(new NumericDocValuesField(happenTime, Long.valueOf(str[1]))); // 只有这种域才能排序
         doc.add(new LongPoint(happenTime, Long.valueOf(str[1]))); // NumericDocValuesField为LongPoint类型建立正排索引用于排序 聚合，不存储内容

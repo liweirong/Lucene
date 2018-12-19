@@ -5,6 +5,7 @@ import com.iris.lucene.ik.IKAnalyzer6x;
 import com.iris.lucene.model.AuditRecordLuceneNew;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiReader;
@@ -40,6 +41,12 @@ public class LuceneQuery extends BaseIndexNew {
     private static final BooleanClause.Occur MUST = BooleanClause.Occur.MUST;
     private static final BooleanClause.Occur MUST_NOT = BooleanClause.Occur.MUST_NOT;
 
+    private final FacetsConfig config = new FacetsConfig();
+
+    public static void main(String[] args) {
+        LuceneQuery luceneQuery = new LuceneQuery();
+        luceneQuery.getTotal();
+    }
 
     public Map<String, Object> getTotal() {
 
@@ -80,6 +87,7 @@ public class LuceneQuery extends BaseIndexNew {
         int total4 = 0;
         int totalFind = 0;
         IndexSearcher indexSearcher = null;
+        MultiReader multiReader = null;
         try {
             dir1 = FSDirectory.open(Paths.get(filePath[0]));
             IndexReader reader1 = DirectoryReader.open(dir1);
@@ -97,17 +105,28 @@ public class LuceneQuery extends BaseIndexNew {
             dir4 = FSDirectory.open(Paths.get(filePath[3]));
             IndexReader reader4 = DirectoryReader.open(dir4);
             total4 = reader4.maxDoc();
-            MultiReader multiReader = new MultiReader(reader1, reader2, reader3, reader4);
+            multiReader = new MultiReader(reader1, reader2, reader3, reader4);
             total = multiReader.maxDoc();//所有文档数
 //            System.out.println("audit_record中所有文档数:" + total);
             indexSearcher = new IndexSearcher(multiReader);
 //            ParallelMultiSearcher multiSearcher=new ParallelMultiSearcher(searchers);
-
-
         } catch (IOException e) {
             System.out.println("检索异常" + e);
         }
         /**------------------------------------------------------------------------------------**/
+       /* DrillDownQuery q = new DrillDownQuery(this.config);
+        //添加查询条件
+        q.add(keyWord, "防统方");
+        FacetsCollector fc = new FacetsCollector();
+        try {
+            DefaultSortedSetDocValuesReaderState state = new DefaultSortedSetDocValuesReaderState(multiReader);
+            FacetsCollector.search(indexSearcher, q, 10, fc);
+            SortedSetDocValuesFacetCounts facets = new SortedSetDocValuesFacetCounts(state, fc);
+            FacetResult result = facets.getTopChildren(Integer.MAX_VALUE,"Author");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+*/
 
         TopDocs hits;
 
@@ -115,9 +134,9 @@ public class LuceneQuery extends BaseIndexNew {
             assert indexSearcher != null;
             totalFind = indexSearcher.count(booleanQuery.build());
             // 查询数据， 结束页面自前的数据都会查询到，但是只取本页的数据
-            System.out.println("audit_record中total:" + totalFind);
+            System.out.println("audit_record中满足条件的total:" + totalFind);
 
-            Sort sort = new Sort(new SortField("happenTime", SortField.Type.LONG, true)); // 时间降序排序
+            Sort sort = new Sort(new SortField(happenTime, SortField.Type.LONG, true)); // 时间降序排序
 
             hits = indexSearcher.search(booleanQuery.build(), 3, sort);
         } catch (IOException e) {
@@ -140,6 +159,7 @@ public class LuceneQuery extends BaseIndexNew {
             auditRecord.setId(Long.valueOf(doc.get(id)));
             auditRecord.setHappenTime(Long.valueOf(doc.get(happenTime)));
             auditRecord.setRiskLev(Integer.valueOf(doc.get(riskLev)));
+            auditRecord.setOperSentence(operSentence);
             resultList.add(auditRecord);
         }
 /**------------------------------------------------------------------------------------**/
@@ -191,7 +211,7 @@ public class LuceneQuery extends BaseIndexNew {
 
 
         Map<String, Object> map = new HashMap<>();
-//        map.put("totalFind", totalFind);
+        map.put("totalFind", totalFind);
         map.put("total", total);
         map.put("total1", total1);
         map.put("total2", total2);

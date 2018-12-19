@@ -25,15 +25,13 @@ public class LuceneIndex2 extends BaseIndexNew {
     private static Analyzer analyzer;
     private static IndexWriter indexWriter = null;
     private static Charset charset = Charset.forName("utf-8");
-    private static long startTime;
-    private static long endTime;
 
     static {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分 20000
         try {
             dir = FSDirectory.open(Paths.get(indexPath));
         } catch (IOException e) {
-
+            log.error("打开索引目录异常{}", e);
         }
     }
 
@@ -42,7 +40,6 @@ public class LuceneIndex2 extends BaseIndexNew {
      * @param filePath 文件位置
      */
     public static void bulkIndex(String filePath) {
-        String record;
 
         File file = new File(filePath);
         if (!file.exists()) {
@@ -61,30 +58,20 @@ public class LuceneIndex2 extends BaseIndexNew {
         }
 
         indexWriter = getWriter();
+        String record;
         List<String> list = new ArrayList<>(initialCapacity);
         for (int i = 0; i < listFiles.length; i++) {
             File fileItem = listFiles[i];
-//            String fileItemPath = fileItem.getPath();
-//            log.info("开始处理" + fileItemPath + "文件中的数据");
-//            System.out.println("开始处理" + fileItemPath + "文件中的数据");
-            startTime = System.currentTimeMillis();
             try (
                     FileInputStream fileIs = new FileInputStream(fileItem);
                     InputStreamReader isReader = new InputStreamReader(fileIs, charset);
                     BufferedReader br = new BufferedReader(isReader)
             ) {
                 while ((record = br.readLine()) != null) {
-//                    AuditRecordLucene audit = JSON.parseObject(record, AuditRecordLucene.class);
                     list.add(record);
                 }
-//                endTime = System.currentTimeMillis();
-//                System.out.println("耗时" + (endTime - startTime) + "毫秒，转换" + list.size() + "条");
 
-//                startTime = System.currentTimeMillis();
-                int total = insert(list, indexWriter);
-                endTime = System.currentTimeMillis();
-                System.out.println("单个文件数据入库：" + (endTime - startTime) + "毫秒插入" + total + "条");
-//                System.out.println("数据入库：" + total + "条");
+                insert(list, indexWriter);
             } catch (Throwable e) {
                 System.out.println(e);
                 try {
@@ -108,8 +95,7 @@ public class LuceneIndex2 extends BaseIndexNew {
      * @param indexWriter indexWriter
      * @return 总数
      */
-    public static int insert(List<String> list, IndexWriter indexWriter) {
-        int total = 0;
+    public static void insert(List<String> list, IndexWriter indexWriter) {
         RAMDirectory ramDir = new RAMDirectory();
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
         IndexWriter ramWriter = null;
@@ -118,7 +104,6 @@ public class LuceneIndex2 extends BaseIndexNew {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        long start = System.currentTimeMillis();
         // 添加索引进内存
         for (int i = 0; i < list.size(); i++) {
             Document doc = getDoc(list.get(i));
@@ -126,25 +111,26 @@ public class LuceneIndex2 extends BaseIndexNew {
                 if (doc != null) {
                     assert ramWriter != null;
                     ramWriter.addDocument(doc);
-                    total++;
                 }
             } catch (IOException e) {
                 System.out.println("添加索引异常" + e);
             }
         }
-        System.out.println(System.currentTimeMillis() - start);
         // 一个文件加载后再存入磁盘
         try {
-            ramWriter.close();
             indexWriter.addIndexes(ramDir);
-//            startTime = System.currentTimeMillis();
             indexWriter.commit();
-//            endTime = System.currentTimeMillis();
-//            System.out.println("commit：" + (endTime - startTime) + "毫秒" + total + "条");
         } catch (IOException e) {
             System.out.println("存入磁盘异常" + e);
+        } finally {
+            try {
+                if (ramWriter != null || ramWriter.isOpen()) {
+                    ramWriter.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        return total;
     }
 
 

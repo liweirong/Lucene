@@ -61,6 +61,12 @@
             <artifactId>lucene-highlighter</artifactId>
             <version>${lucene.version}</version>
         </dependency>
+        <!-- 官方测试例子 -->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-demo</artifactId>
+            <version>${lucene.version}</version>
+        </dependency>
         <!-- 日志管理 support start -->
         <dependency>
             <groupId>org.slf4j</groupId>

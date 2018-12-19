@@ -8,7 +8,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
 import java.io.*;
@@ -32,7 +32,7 @@ public class LuceneIndex extends BaseIndexNew {
     static {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分 20000
         try {
-            dir = FSDirectory.open(Paths.get(indexPath));
+            dir = MMapDirectory.open(Paths.get(indexPath));
         } catch (IOException e) {
 
         }
