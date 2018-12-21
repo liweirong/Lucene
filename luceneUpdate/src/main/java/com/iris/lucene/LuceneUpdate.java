@@ -167,7 +167,7 @@ public class LuceneUpdate extends BaseIndex {
             IndexSearcher is = new IndexSearcher(multiReader);
             TopDocs search = is.search(booleanQuery.build(), 4);
 
-            int totalHits = search.totalHits;
+            Long totalHits = search.totalHits;
             System.out.println("查询四个文件夹满足条件:keyword='" + keyWord + "'共有：" + totalHits);
             ScoreDoc[] scoreDocs = search.scoreDocs;
             for (ScoreDoc doc : scoreDocs) {

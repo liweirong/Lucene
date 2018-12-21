@@ -8,7 +8,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
 import java.io.*;
@@ -31,7 +31,7 @@ public class LuceneIndex3 extends BaseIndexNew {
 //        analyzer = new SmartChineseAnalyzer();  //26000
 //        analyzer = new StandardAnalyzer(); // 43425
         try {
-            dir = FSDirectory.open(Paths.get(indexPath));
+            dir = MMapDirectory.open(Paths.get(indexPath));
         } catch (IOException e) {
 
         }
@@ -43,7 +43,6 @@ public class LuceneIndex3 extends BaseIndexNew {
      */
     public static void bulkIndex(String filePath) {
         String record;
-
         File file = new File(filePath);
         if (!file.exists()) {
             file.mkdirs();
@@ -64,27 +63,16 @@ public class LuceneIndex3 extends BaseIndexNew {
         List<String> list = new ArrayList<>(initialCapacity);
         for (int i = 0; i < listFiles.length; i++) {
             File fileItem = listFiles[i];
-//            String fileItemPath = fileItem.getPath();
-//            log.info("开始处理" + fileItemPath + "文件中的数据");
-//            System.out.println("开始处理" + fileItemPath + "文件中的数据");
             try (
                     FileInputStream fileIs = new FileInputStream(fileItem);
                     InputStreamReader isReader = new InputStreamReader(fileIs, charset);
                     BufferedReader br = new BufferedReader(isReader)
             ) {
-//                startTime = System.currentTimeMillis();
                 while ((record = br.readLine()) != null) {
-//                    AuditRecordLucene audit = JSON.parseObject(record, AuditRecordLucene.class);
                     list.add(record);
                 }
-//                endTime = System.currentTimeMillis();
-//                System.out.println("json转换：耗时" + (endTime - startTime) + "毫秒，转换" + list.size() + "条");
-
-//                startTime = System.currentTimeMillis();
-                int total = insert(list, indexWriter);
-//                endTime = System.currentTimeMillis();
-//                System.out.println("数据入库：" + (endTime - startTime) + "毫秒插入" + total + "条");
-                System.out.println(filePath + "数据入库：" + total + "条");
+                insert(list, indexWriter);
+//
             } catch (Throwable e) {
                 System.out.println(e);
                 try {
@@ -108,8 +96,7 @@ public class LuceneIndex3 extends BaseIndexNew {
      * @param indexWriter indexWriter
      * @return 总数
      */
-    public static int insert(List<String> list, IndexWriter indexWriter) {
-        int total = 0;
+    public static void insert(List<String> list, IndexWriter indexWriter) {
         RAMDirectory ramDir = new RAMDirectory();
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
         IndexWriter ramWriter = null;
@@ -124,7 +111,6 @@ public class LuceneIndex3 extends BaseIndexNew {
             try {
                 if (doc != null) {
                     ramWriter.addDocument(doc);
-                    total++;
                 }
             } catch (IOException e) {
                 System.out.println("添加索引异常" + e);
@@ -138,7 +124,7 @@ public class LuceneIndex3 extends BaseIndexNew {
         } catch (IOException e) {
             System.out.println("存入磁盘异常" + e);
         }
-        return total;
+
     }
 
 

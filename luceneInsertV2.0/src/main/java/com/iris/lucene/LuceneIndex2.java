@@ -8,8 +8,8 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.store.MMapDirectory;
+import org.apache.lucene.store.NRTCachingDirectory;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -29,7 +29,7 @@ public class LuceneIndex2 extends BaseIndexNew {
     static {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分 20000
         try {
-            dir = FSDirectory.open(Paths.get(indexPath));
+            dir = MMapDirectory.open(Paths.get(indexPath));
         } catch (IOException e) {
             log.error("打开索引目录异常{}", e);
         }
@@ -96,7 +96,8 @@ public class LuceneIndex2 extends BaseIndexNew {
      * @return 总数
      */
     public static void insert(List<String> list, IndexWriter indexWriter) {
-        RAMDirectory ramDir = new RAMDirectory();
+        //NRTCachingDirectory是针对RAMDirectory封装的代理类，主要用在近实时搜索场景下，NRT就是near-real-time（近实时）的缩写；具体特点是在少量写入索引时，写索引稍微慢，读索引相对比较快。
+        NRTCachingDirectory ramDir = new NRTCachingDirectory(dir,100,10);
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
         IndexWriter ramWriter = null;
         try {
@@ -113,7 +114,7 @@ public class LuceneIndex2 extends BaseIndexNew {
                     ramWriter.addDocument(doc);
                 }
             } catch (IOException e) {
-                System.out.println("添加索引异常" + e);
+                System.out.println("添加索引异常2" + e);
             }
         }
         // 一个文件加载后再存入磁盘
@@ -121,7 +122,7 @@ public class LuceneIndex2 extends BaseIndexNew {
             indexWriter.addIndexes(ramDir);
             indexWriter.commit();
         } catch (IOException e) {
-            System.out.println("存入磁盘异常" + e);
+          log.error("存入磁盘异常2{}", e);
         } finally {
             try {
                 if (ramWriter != null || ramWriter.isOpen()) {
