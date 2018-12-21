@@ -43,10 +43,10 @@ public class LuceneQuery extends BaseIndexNew {
 
     private final FacetsConfig config = new FacetsConfig();
 
-    public static void main(String[] args) {
+ /*   public static void main(String[] args) {
         LuceneQuery luceneQuery = new LuceneQuery();
         luceneQuery.getTotal();
-    }
+    }*/
 
     public Map<String, Object> getTotal() {
 
@@ -88,32 +88,60 @@ public class LuceneQuery extends BaseIndexNew {
         int totalFind = 0;
         IndexSearcher indexSearcher = null;
         MultiReader multiReader = null;
+
+        List<IndexReader> reader = new ArrayList<>();
+
         try {
             dir1 = FSDirectory.open(Paths.get(filePath[0]));
             IndexReader reader1 = DirectoryReader.open(dir1);
+            reader.add(reader1);
             total1 = reader1.maxDoc();
-
-
-            dir2 = FSDirectory.open(Paths.get(filePath[1]));
-            IndexReader reader2 = DirectoryReader.open(dir2);
-            total2 = reader2.maxDoc();
-
-            dir3 = FSDirectory.open(Paths.get(filePath[2]));
-            IndexReader reader3 = DirectoryReader.open(dir3);
-            total3 = reader3.maxDoc();
-
-            dir4 = FSDirectory.open(Paths.get(filePath[3]));
-            IndexReader reader4 = DirectoryReader.open(dir4);
-            total4 = reader4.maxDoc();
-            multiReader = new MultiReader(reader1, reader2, reader3, reader4);
-            total = multiReader.maxDoc();//所有文档数
-//            System.out.println("audit_record中所有文档数:" + total);
-            indexSearcher = new IndexSearcher(multiReader);
-//            ParallelMultiSearcher multiSearcher=new ParallelMultiSearcher(searchers);
         } catch (IOException e) {
             System.out.println("检索异常" + e);
         }
-        /**------------------------------------------------------------------------------------**/
+        try {
+            dir2 = FSDirectory.open(Paths.get(filePath[1]));
+            IndexReader reader2 = DirectoryReader.open(dir2);
+            reader.add(reader2);
+            total2 = reader2.maxDoc();
+        } catch (IOException e) {
+            System.out.println("检索异常" + e);
+        }
+        try {
+            dir3 = FSDirectory.open(Paths.get(filePath[2]));
+            IndexReader reader3 = DirectoryReader.open(dir3);
+            reader.add(reader3);
+            total3 = reader3.maxDoc();
+        } catch (IOException e) {
+            System.out.println("检索异常" + e);
+        }
+        try {
+            dir4 = FSDirectory.open(Paths.get(filePath[3]));
+            IndexReader reader4 = DirectoryReader.open(dir4);
+            reader.add(reader4);
+            total4 = reader4.maxDoc();
+        } catch (IOException e) {
+            System.out.println("检索异常" + e);
+        }
+        int size1 = reader.size();
+        IndexReader[] is = new IndexReader[size1];
+        for (int i = 0; i < size1; i++) {
+            is[i] = reader.get(i);
+        }
+
+
+        try {
+            multiReader = new MultiReader(is);
+            total = multiReader.maxDoc();//所有文档数
+//            System.out.println("audit_record中所有文档数:" + total);
+            indexSearcher = new IndexSearcher(multiReader);
+        } catch (IOException e) {
+            System.out.println("检索异常" + e);
+        }
+
+        /**
+         * ------------------------------------------------------------------------------------
+         **/
        /* DrillDownQuery q = new DrillDownQuery(this.config);
         //添加查询条件
         q.add(keyWord, "防统方");
@@ -130,7 +158,9 @@ public class LuceneQuery extends BaseIndexNew {
 
         TopDocs hits;
 
-        try {
+        try
+
+        {
             assert indexSearcher != null;
             totalFind = indexSearcher.count(booleanQuery.build());
             // 查询数据， 结束页面自前的数据都会查询到，但是只取本页的数据
@@ -139,7 +169,10 @@ public class LuceneQuery extends BaseIndexNew {
             Sort sort = new Sort(new SortField(happenTime, SortField.Type.LONG, true)); // 时间降序排序
 
             hits = indexSearcher.search(booleanQuery.build(), 3, sort);
-        } catch (IOException e) {
+        } catch (
+                IOException e)
+
+        {
             System.out.println("检索异常" + e);
             return null;
         }
@@ -147,7 +180,10 @@ public class LuceneQuery extends BaseIndexNew {
         // 得到得分文档数组
         ScoreDoc[] scoreDocs = hits.scoreDocs;
         List<AuditRecordLuceneNew> resultList = new ArrayList<>(scoreDocs.length);
-        for (ScoreDoc scoreDoc : scoreDocs) {
+        for (
+                ScoreDoc scoreDoc : scoreDocs)
+
+        {
             Document doc = null;
             try {
                 // 取得对应的文档对象
@@ -156,13 +192,16 @@ public class LuceneQuery extends BaseIndexNew {
                 e.printStackTrace();
             }
             AuditRecordLuceneNew auditRecord = new AuditRecordLuceneNew();
-            auditRecord.setId(Long.valueOf(doc.get(id)));
+            auditRecord.setId(doc.get(id));
             auditRecord.setHappenTime(Long.valueOf(doc.get(happenTime)));
             auditRecord.setRiskLev(Integer.valueOf(doc.get(riskLev)));
             auditRecord.setOperSentence(operSentence);
             resultList.add(auditRecord);
         }
-/**------------------------------------------------------------------------------------**/
+
+        /**
+         * ------------------------------------------------------------------------------------
+         **/
 
 /*        try {
             dir = FSDirectory.open(Paths.get("/data/lucene/group"));
