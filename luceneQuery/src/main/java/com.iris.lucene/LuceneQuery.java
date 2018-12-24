@@ -158,9 +158,7 @@ public class LuceneQuery extends BaseIndexNew {
 
         TopDocs hits;
 
-        try
-
-        {
+        try {
             assert indexSearcher != null;
             totalFind = indexSearcher.count(booleanQuery.build());
             // 查询数据， 结束页面自前的数据都会查询到，但是只取本页的数据
@@ -169,10 +167,7 @@ public class LuceneQuery extends BaseIndexNew {
             Sort sort = new Sort(new SortField(happenTime, SortField.Type.LONG, true)); // 时间降序排序
 
             hits = indexSearcher.search(booleanQuery.build(), 3, sort);
-        } catch (
-                IOException e)
-
-        {
+        } catch (IOException e) {
             System.out.println("检索异常" + e);
             return null;
         }
