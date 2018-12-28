@@ -5,6 +5,8 @@ import com.iris.lucene.ik.IKAnalyzer6x;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.facet.FacetsConfig;
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
@@ -22,6 +24,7 @@ public class LuceneIndex extends BaseIndexNew {
     // 索引路径
     private static final String indexPath = "/data/lucene/auditRecord1";
     private static Directory dir = null;
+    private static Directory taxoDir = null;
     private static Analyzer analyzer;
 
     private static IndexWriter indexWriter = null;
@@ -33,6 +36,8 @@ public class LuceneIndex extends BaseIndexNew {
         analyzer = new IKAnalyzer6x(true); // true:用最大词长分词  false:最细粒度切分 20000
         try {
             dir = MMapDirectory.open(Paths.get(indexPath));
+            taxoDir = MMapDirectory.open(Paths.get(taxoPath));
+
         } catch (IOException e) {
 
         }
@@ -81,7 +86,7 @@ public class LuceneIndex extends BaseIndexNew {
                 System.out.println("json转换：耗时" + (endTime - startTime) + "毫秒，转换" + list.size() + "条");
 
                 startTime = System.currentTimeMillis();
-                int total = insert(list, indexWriter);
+                int total = insertFact(list, indexWriter);
 //                endTime = System.currentTimeMillis();
                 System.out.println(filePath + "数据入库：" + total + "条");
             } catch (Throwable e) {
@@ -141,6 +146,29 @@ public class LuceneIndex extends BaseIndexNew {
         return total;
     }
 
+    /**
+     * 把对象进行索引
+     *
+     * @param list        对象集合
+     * @param indexWriter indexWriter
+     * @return 总数
+     */
+    public static int insertFact(List<String> list, IndexWriter indexWriter) throws IOException {
+        int total = 0;
+        RAMDirectory ramDir = new RAMDirectory();
+        IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
+        IndexWriter ramWriter = new IndexWriter(ramDir, iwc);
+        DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
+        FacetsConfig facetsConfig = new FacetsConfig();
+        for (int i = 0; i < list.size(); i++) {
+            Document doc = getDoc(list.get(i));
+            Document facetsDoc = facetsConfig.build(taxoWriter, doc);
+            ramWriter.addDocument(facetsDoc);
+            total++;
+        }
+        indexWriter.addIndexes(ramDir);
+        return total;
+    }
     /**
      * 得到单个的文档
      *

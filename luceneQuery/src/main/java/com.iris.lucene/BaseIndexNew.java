@@ -55,7 +55,8 @@ public class BaseIndexNew {
      * @return
      */
     static Document getDoc(Document doc, AuditRecordLuceneNew record) {
-        doc.add(new StringField(id, record.getId(), Field.Store.YES));
+        doc.add(new LongPoint(id, record.getId()));
+        doc.add(new StoredField(id, record.getId()));
         doc.add(new NumericDocValuesField(happenTime, record.getHappenTime())); // 只有这种域才能排序
         doc.add(new LongPoint(happenTime, record.getHappenTime())); // NumericDocValuesField为LongPoint类型建立正排索引用于排序 聚合，不存储内容
         doc.add(new StoredField(happenTime, record.getHappenTime())); // 存储用

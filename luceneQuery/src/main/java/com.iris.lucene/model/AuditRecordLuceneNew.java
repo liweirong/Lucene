@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class AuditRecordLuceneNew {
-    private String id;    //L时间戳（单位：s 前10）+风险等级（0/1/2/3/4）+随机四位'  自定义id
+    private Long id;    //L时间戳（单位：s 前10）+风险等级（0/1/2/3/4）+随机四位'  自定义id
     private Long happenTime; //  LongField 发生时间
     private String srcIp; //  LongField 客户端IP
     private Integer srcPort;//int 客户端端口

@@ -3,11 +3,15 @@ package com.iris.lucene;
 
 import com.iris.lucene.model.AuditRecordLuceneNew;
 import org.apache.lucene.document.*;
+import org.apache.lucene.facet.FacetField;
+import org.apache.lucene.util.BytesRef;
 
 public class BaseIndexNew {
-    public static final String[] BASE_PATH = {"/data/luceneInfoDir/0","/data/luceneInfoDir/1","/data/luceneInfoDir/2","/data/luceneInfoDir/3"};
+    public static final String[] BASE_PATH = {"/data/luceneInfoDir/0", "/data/luceneInfoDir/1", "/data/luceneInfoDir/2", "/data/luceneInfoDir/3"};
     public static int initialCapacity = 105000;// list初始容量一万条
+    static final String taxoPath = "/data/lucene/taxo";
 
+    static final String[] face = {"srcIp", "systemUser", "systemHost", "visitTool", "appAccount", "sessionId", "dbUser", "sqlResponse", "dealState", "ruleName", "riskLev"};
 
     public static final String id = "id";    //L时间戳（单位：s 前10）+风险等级（0/1/2/3/4）+随机四位'	自定义id
     public static final String happenTime = "happenTime";
@@ -100,6 +104,18 @@ public class BaseIndexNew {
         doc.add(new StringField(protectObjectName, record.getProtectObjectName(), Field.Store.YES));
         doc.add(new StringField(ruleName, record.getRuleName(), Field.Store.YES));
         doc.add(new StringField(riskLev, record.getRiskLev().toString(), Field.Store.YES));
+
+//        doc.add(new FacetField(srcIp, str[2]));
+//        doc.add(new FacetField(systemUser, str[5]));
+//        doc.add(new FacetField(systemHost, str[6]));
+//        doc.add(new FacetField(visitTool, str[10]));
+//        doc.add(new FacetField(appAccount, str[11]));
+//        doc.add(new FacetField(sessionId, str[12]));
+//        doc.add(new FacetField(dbUser, str[14]));
+//        doc.add(new FacetField(sqlResponse, str[5]));
+//        doc.add(new FacetField(dealState, str[28]));
+//        doc.add(new FacetField(ruleName, str[30]));
+//        doc.add(new FacetField(riskLev, str[31]));
         return doc;
     }
 
@@ -131,7 +147,9 @@ public class BaseIndexNew {
             return null;
         }
         Document doc = new Document();
-        doc.add(new StringField(id, str[0], Field.Store.YES));
+
+        doc.add(new LongPoint(id, Long.valueOf(str[0])));
+        doc.add(new StoredField(id, Long.valueOf(str[0])));
 
         doc.add(new NumericDocValuesField(happenTime, Long.valueOf(str[1]))); // 只有这种域才能排序
         doc.add(new LongPoint(happenTime, Long.valueOf(str[1]))); // NumericDocValuesField为LongPoint类型建立正排索引用于排序 聚合，不存储内容
@@ -143,6 +161,7 @@ public class BaseIndexNew {
         doc.add(new StoredField(srcPort, Integer.valueOf(str[3])));
 
         doc.add(new StringField(srcMac, str[4], Field.Store.YES));
+
         doc.add(new StringField(systemUser, str[5], Field.Store.YES));
         doc.add(new StringField(systemHost, str[6], Field.Store.YES));
         doc.add(new StringField(destIp, str[7], Field.Store.YES));
@@ -157,7 +176,7 @@ public class BaseIndexNew {
         doc.add(new IntPoint(dbType, Integer.valueOf(str[13])));
         doc.add(new StoredField(dbType, Integer.valueOf(str[13])));
         doc.add(new StringField(dbUser, str[14], Field.Store.YES));
-        doc.add(new IntPoint(operType,Integer.valueOf(str[15])));
+        doc.add(new IntPoint(operType, Integer.valueOf(str[15])));
         doc.add(new StoredField(operType, Integer.valueOf(str[15])));
         doc.add(new StringField(dbName, str[16], Field.Store.YES));
         doc.add(new StringField(tableName, str[17], Field.Store.YES));
@@ -171,7 +190,7 @@ public class BaseIndexNew {
         doc.add(new StringField(rowNum, str[23], Field.Store.YES));
         doc.add(new FloatPoint(sqlExecTime, Float.valueOf(str[24])));
         doc.add(new StoredField(sqlExecTime, Float.valueOf(str[24])));
-        doc.add(new IntPoint(sqlResponse,Integer.valueOf(str[25])));
+        doc.add(new IntPoint(sqlResponse, Integer.valueOf(str[25])));
         doc.add(new StoredField(sqlResponse, Integer.valueOf(str[25])));
         doc.add(new TextField(returnContent, str[26], Field.Store.YES));
         doc.add(new IntPoint(returnContentLen, Integer.valueOf(str[27])));
@@ -181,6 +200,30 @@ public class BaseIndexNew {
         doc.add(new StringField(ruleName, str[30], Field.Store.YES));
         doc.add(new IntPoint(riskLev, Integer.valueOf(str[31])));
         doc.add(new StoredField(riskLev, Integer.valueOf(str[31])));
+
+        // 需要切面的字段
+        // "srcIp", "systemUser", "systemHost", "visitTool", "appAccount", "sessionId", "dbUser", "sqlResponse", "dealState",
+        // "ruleName", "riskLev"
+        doc.add(new FacetField(srcIp, str[2]));
+        doc.add(new FacetField(systemUser, str[5]));
+        doc.add(new FacetField(systemHost, str[6]));
+        doc.add(new FacetField(visitTool, str[10]));
+        doc.add(new FacetField(sessionId, str[12]));
+        doc.add(new FacetField(dbUser, str[14]));
+        doc.add(new FacetField(sqlResponse, str[25]));
+        doc.add(new FacetField(dealState, str[28]));
+        doc.add(new FacetField(ruleName, str[30]));
+        doc.add(new FacetField(riskLev, str[31]));
+        doc.add(new SortedDocValuesField(srcIp, new BytesRef(str[2])));
+        doc.add(new SortedDocValuesField(systemUser, new BytesRef(str[5])));
+        doc.add(new SortedDocValuesField(systemHost, new BytesRef(str[6])));
+        doc.add(new SortedDocValuesField(visitTool, new BytesRef(str[10])));
+        doc.add(new SortedDocValuesField(sessionId, new BytesRef(str[12])));
+        doc.add(new SortedDocValuesField(dbUser, new BytesRef(str[14])));
+        doc.add(new SortedDocValuesField(sqlResponse, new BytesRef(str[25])));
+        doc.add(new SortedDocValuesField(dealState, new BytesRef(str[28])));
+        doc.add(new SortedDocValuesField(ruleName, new BytesRef(str[30])));
+        doc.add(new SortedDocValuesField(riskLev, new BytesRef(str[31])));
         return doc;
     }
 }

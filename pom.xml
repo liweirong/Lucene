@@ -9,10 +9,8 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>luceneInsert</module>
         <module>luceneInsertV2.0</module>
         <module>luceneQuery</module>
-        <module>luceneInsertV3.0-7.2.0</module>
         <module>luceneUpdate</module>
     </modules>
     <properties>

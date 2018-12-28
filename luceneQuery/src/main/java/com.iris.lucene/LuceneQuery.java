@@ -187,7 +187,7 @@ public class LuceneQuery extends BaseIndexNew {
                 e.printStackTrace();
             }
             AuditRecordLuceneNew auditRecord = new AuditRecordLuceneNew();
-            auditRecord.setId(doc.get(id));
+            auditRecord.setId(Long.valueOf(doc.get(id)));
             auditRecord.setHappenTime(Long.valueOf(doc.get(happenTime)));
             auditRecord.setRiskLev(Integer.valueOf(doc.get(riskLev)));
             auditRecord.setOperSentence(operSentence);

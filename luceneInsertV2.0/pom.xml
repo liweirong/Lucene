@@ -96,6 +96,12 @@
             <artifactId>jnotify</artifactId>
             <version>0.94</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-facet</artifactId>
+            <version>RELEASE</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <!-- 在central库中没有这个包，需要添加以下的repo -->
