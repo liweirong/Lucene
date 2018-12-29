@@ -15,6 +15,10 @@ public class QueryMain {
             Map<String, Object> map = luceneQuery.facetByFieldName("ruleName,riskLev",18);
 //            Map<String, Object> map = luceneQuery.facetByFieldName("riskLev",18);
             System.out.println(new Gson().toJson(map));
+
+
+            Map<String, Object> map1 = luceneQuery.groupByFieldName("ruleName",10);
+            System.out.println(new Gson().toJson(map1));
         } catch (IOException e) {
             e.printStackTrace();
         }

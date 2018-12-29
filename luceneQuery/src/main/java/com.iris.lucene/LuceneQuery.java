@@ -1,10 +1,12 @@
 package com.iris.lucene;
 
 
+import com.google.gson.Gson;
 import com.iris.lucene.ik.IKAnalyzer6x;
 import com.iris.lucene.model.AuditRecordLuceneNew;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.facet.FacetResult;
 import org.apache.lucene.facet.Facets;
@@ -19,16 +21,17 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.*;
+import org.apache.lucene.search.grouping.GroupDocs;
+import org.apache.lucene.search.grouping.GroupingSearch;
+import org.apache.lucene.search.grouping.TopGroups;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.MMapDirectory;
+import org.apache.lucene.util.BytesRef;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * lucene本身不支持分组统计，不过可以使用fieldCache来实现分组统计功能，而且也有很好的性能。
@@ -220,6 +223,54 @@ public class LuceneQuery extends BaseIndexNew {
     // 切面索引存放处
     static final String taxoPath = "/data/lucene/taxo";
 
+    public Map<String, Object> groupByFieldName(String fieldName, Integer topN) throws IOException {
+        Map<String, Object> groupMap = new HashMap<>();
+        GroupingSearch groupingSearch = new GroupingSearch(fieldName);
+        //如果不设置下面这个属性，每个分组里面只有一条数据，下面的配置每个组最多返回n条
+        groupingSearch.setGroupDocsLimit(topN);
+        dir1 = FSDirectory.open(Paths.get(filePath[0]));
+        IndexReader reader1 = DirectoryReader.open(dir1);
+        IndexSearcher searcher = new IndexSearcher(reader1);
+
+
+        Query query = IntPoint.newRangeQuery("riskLev", 0, 5);
+
+
+        TopGroups<BytesRef> result = null;
+        try {
+            /*Sort sort = new Sort(new SortField(fieldName, SortField.Type.STRING, true));
+            groupingSearch.setGroupSort(sort);*/
+            result = groupingSearch.search(searcher, query, 0, 500);
+        } catch (IOException e) {
+        }
+        if (result == null) {
+            return groupMap;
+        }
+        for (GroupDocs<BytesRef> groupDocs : result.groups) {
+            String groupValue = groupDocs.groupValue.utf8ToString();
+            groupMap.computeIfAbsent(groupValue, k -> new ArrayList<>());
+            groupMap.put(groupValue, groupDocs.scoreDocs.length);
+        }
+        System.out.println(new Gson().toJson(groupMap));
+        List<Map.Entry<String,Object>> list = new ArrayList<>(groupMap.entrySet());
+        //升序排序
+        Collections.sort(list, Comparator.comparing(o -> ((Integer) o.getValue())));
+
+//        for(Map.Entry<String,Object> mapping:list){
+//            groupMap.put(mapping.getKey(),mapping.getValue());
+//        }
+
+        return groupMap;
+    }
+
+    /**
+     * 切面
+     *
+     * @param fieldName
+     * @param topN
+     * @return
+     * @throws IOException
+     */
     public Map<String, Object> facetByFieldName(String fieldName, Integer topN) throws IOException {
         dir1 = FSDirectory.open(Paths.get(filePath[0]));
         IndexReader reader1 = DirectoryReader.open(dir1);
@@ -230,12 +281,10 @@ public class LuceneQuery extends BaseIndexNew {
 
         FacetsCollector fc = new FacetsCollector();
 //        FacetsCollector.search(searcher, new MatchAllDocsQuery(), 10, fc);
-        Sort sort = new Sort(SortField.FIELD_SCORE);//指定分组排序规则 TODO 暂时未找到如何分组
-
 
         BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
         booleanQuery.add(new TermQuery(new Term(ruleName, "tongyong")), MUST);
-        booleanQuery.add(LongPoint.newRangeQuery(happenTime,0L,1545377400L),MUST);
+        booleanQuery.add(LongPoint.newRangeQuery(happenTime, 0L, 1545377400L), MUST);
 //        booleanQuery.add(new TermQuery(new Term(riskLev, "0")), BooleanClause.Occur.MUST_NOT);
         searcher.search(booleanQuery.build(), fc);//  按条件统计
 //        searcher.search(new MatchAllDocsQuery(), fc);// 无条件，统计所有
