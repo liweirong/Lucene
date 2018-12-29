@@ -161,12 +161,16 @@ public class LuceneIndex extends BaseIndexNew {
         DirectoryTaxonomyWriter taxoWriter = new DirectoryTaxonomyWriter(taxoDir);
         FacetsConfig facetsConfig = new FacetsConfig();
         for (int i = 0; i < list.size(); i++) {
-            Document doc = getDoc(list.get(i));
-            Document facetsDoc = facetsConfig.build(taxoWriter, doc);
+            Document facetsDoc = facetsConfig.build(taxoWriter, getDoc(list.get(i)));
             ramWriter.addDocument(facetsDoc);
             total++;
         }
+        taxoWriter.commit();
+        taxoWriter.close();
+        ramWriter.close();
         indexWriter.addIndexes(ramDir);
+        ramDir.close();
+        indexWriter.commit();
         return total;
     }
     /**

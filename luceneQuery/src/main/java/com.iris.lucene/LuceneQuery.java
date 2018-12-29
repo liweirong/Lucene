@@ -5,15 +5,23 @@ import com.iris.lucene.ik.IKAnalyzer6x;
 import com.iris.lucene.model.AuditRecordLuceneNew;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.facet.FacetResult;
+import org.apache.lucene.facet.Facets;
+import org.apache.lucene.facet.FacetsCollector;
 import org.apache.lucene.facet.FacetsConfig;
+import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts;
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiReader;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.MMapDirectory;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -193,56 +201,9 @@ public class LuceneQuery extends BaseIndexNew {
             auditRecord.setOperSentence(operSentence);
             resultList.add(auditRecord);
         }
-
         /**
          * ------------------------------------------------------------------------------------
          **/
-
-/*        try {
-            dir = FSDirectory.open(Paths.get("/data/lucene/group"));
-            IndexReader reader = DirectoryReader.open(dir);
-            indexSearcher = new IndexSearcher(reader);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        GroupingSearch groupingSearch = new GroupingSearch("riskLev");
-        groupingSearch.setGroupSort(new Sort(SortField.FIELD_SCORE));
-        groupingSearch.setFillSortFields(true);
-        groupingSearch.setCachingInMB(4.0, true);
-        groupingSearch.setAllGroups(true);
-        groupingSearch.setGroupDocsLimit(10);
-
-        TopGroups<BytesRef> result = null;
-        try {
-            result = groupingSearch.search(indexSearcher, booleanQuery.build(), 0, 1000);
-            System.out.println("搜索命中数：" + result.totalHitCount);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        assert result != null;
-        GroupDocs<BytesRef>[] docs = result.groups;
-        for (GroupDocs<BytesRef> groupDocs : docs) {
-            System.out.println("group:" + new String(groupDocs.groupValue.bytes));
-            System.out.println(groupDocs.totalHits);
-            List<AuditRecordLucene> resultList = new ArrayList<>(groupDocs.totalHits);
-            for (ScoreDoc scoreDoc : groupDocs.scoreDocs) {
-                Document doc = new Document();
-                try {
-                    doc = indexSearcher.doc(scoreDoc.doc);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                AuditRecordLucene auditRecord = new AuditRecordLucene();
-                auditRecord.setId(doc.get(id));
-                auditRecord.setHappenTime(Long.valueOf(doc.get(happenTime)));
-                auditRecord.setOperSentence(doc.get(operSentence));
-                auditRecord.setDealState(Byte.valueOf(doc.get(dealState)));
-                resultList.add(auditRecord);
-            }
-        }*/
-
 
         Map<String, Object> map = new HashMap<>();
         map.put("totalFind", totalFind);
@@ -256,5 +217,50 @@ public class LuceneQuery extends BaseIndexNew {
         return map;
     }
 
+    // 切面索引存放处
+    static final String taxoPath = "/data/lucene/taxo";
+
+    public Map<String, Object> facetByFieldName(String fieldName, Integer topN) throws IOException {
+        dir1 = FSDirectory.open(Paths.get(filePath[0]));
+        IndexReader reader1 = DirectoryReader.open(dir1);
+        IndexSearcher searcher = new IndexSearcher(reader1);
+
+        Directory taxoDir = MMapDirectory.open(Paths.get(taxoPath));
+        DirectoryTaxonomyReader taxoReader = new DirectoryTaxonomyReader(taxoDir);
+
+        FacetsCollector fc = new FacetsCollector();
+//        FacetsCollector.search(searcher, new MatchAllDocsQuery(), 10, fc);
+        Sort sort = new Sort(SortField.FIELD_SCORE);//指定分组排序规则 TODO 暂时未找到如何分组
+
+
+        BooleanQuery.Builder booleanQuery = new BooleanQuery.Builder();
+        booleanQuery.add(new TermQuery(new Term(ruleName, "tongyong")), MUST);
+        booleanQuery.add(LongPoint.newRangeQuery(happenTime,0L,1545377400L),MUST);
+//        booleanQuery.add(new TermQuery(new Term(riskLev, "0")), BooleanClause.Occur.MUST_NOT);
+        searcher.search(booleanQuery.build(), fc);//  按条件统计
+//        searcher.search(new MatchAllDocsQuery(), fc);// 无条件，统计所有
+
+
+        Facets facets = new FastTaxonomyFacetCounts(taxoReader, new FacetsConfig(), fc);
+        String[] names = fieldName.split(",");
+        Map<String, Object> map = new HashMap<>();
+        for (String name : names) {
+            Map<String, Object> subMap = new HashMap<>(16);
+            FacetResult facetResult = facets.getTopChildren(topN, name);
+            if (facetResult != null) {
+                if (facetResult.childCount < topN) {
+                    topN = facetResult.childCount;
+                }
+                for (int i = 0; i < topN; i++) {
+                    // 在此排序
+                    subMap.putIfAbsent(facetResult.labelValues[i].label, facetResult.labelValues[i].value);
+                }
+            }
+            map.putIfAbsent(name, subMap);
+        }
+
+        taxoReader.close();
+        return map;
+    }
 
 }

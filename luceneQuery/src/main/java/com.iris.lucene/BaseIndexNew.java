@@ -3,9 +3,10 @@ package com.iris.lucene;
 
 import com.iris.lucene.model.AuditRecordLuceneNew;
 import org.apache.lucene.document.*;
+import org.apache.lucene.search.BooleanClause;
 
 public class BaseIndexNew {
-    public static final String[] BASE_PATH = {"/data/luceneInfoDir/0","/data/luceneInfoDir/1","/data/luceneInfoDir/2","/data/luceneInfoDir/3"};
+    public static final String[] BASE_PATH = {"/data/luceneInfoDir/0", "/data/luceneInfoDir/1", "/data/luceneInfoDir/2", "/data/luceneInfoDir/3"};
     public static int initialCapacity = 105000;// list初始容量一万条
 
 
@@ -44,6 +45,9 @@ public class BaseIndexNew {
 
     public static final String[] audit = {id, happenTime};
 
+    static final BooleanClause.Occur SHOULD = BooleanClause.Occur.SHOULD;
+    static final BooleanClause.Occur MUST = BooleanClause.Occur.MUST;
+    static final BooleanClause.Occur MUST_NOT = BooleanClause.Occur.MUST_NOT;
     /**
      * 表字段结束
      */
@@ -158,7 +162,7 @@ public class BaseIndexNew {
         doc.add(new IntPoint(dbType, Integer.valueOf(str[13])));
         doc.add(new StoredField(dbType, Integer.valueOf(str[13])));
         doc.add(new StringField(dbUser, str[14], Field.Store.YES));
-        doc.add(new IntPoint(operType,Integer.valueOf(str[15])));
+        doc.add(new IntPoint(operType, Integer.valueOf(str[15])));
         doc.add(new StoredField(operType, Integer.valueOf(str[15])));
         doc.add(new StringField(dbName, str[16], Field.Store.YES));
         doc.add(new StringField(tableName, str[17], Field.Store.YES));
@@ -172,7 +176,7 @@ public class BaseIndexNew {
         doc.add(new StringField(rowNum, str[23], Field.Store.YES));
         doc.add(new FloatPoint(sqlExecTime, Float.valueOf(str[24])));
         doc.add(new StoredField(sqlExecTime, Float.valueOf(str[24])));
-        doc.add(new IntPoint(sqlResponse,Integer.valueOf(str[25])));
+        doc.add(new IntPoint(sqlResponse, Integer.valueOf(str[25])));
         doc.add(new StoredField(sqlResponse, Integer.valueOf(str[25])));
         doc.add(new TextField(returnContent, str[26], Field.Store.YES));
         doc.add(new IntPoint(returnContentLen, Integer.valueOf(str[27])));

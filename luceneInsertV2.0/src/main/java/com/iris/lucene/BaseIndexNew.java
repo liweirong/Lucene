@@ -214,6 +214,7 @@ public class BaseIndexNew {
         doc.add(new FacetField(dealState, str[28]));
         doc.add(new FacetField(ruleName, str[30]));
         doc.add(new FacetField(riskLev, str[31]));
+        // 进行分组的域上建立的必须是SortedDocValuesField类型
         doc.add(new SortedDocValuesField(srcIp, new BytesRef(str[2])));
         doc.add(new SortedDocValuesField(systemUser, new BytesRef(str[5])));
         doc.add(new SortedDocValuesField(systemHost, new BytesRef(str[6])));
