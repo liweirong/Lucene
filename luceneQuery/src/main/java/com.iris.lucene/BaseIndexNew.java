@@ -40,6 +40,7 @@ public class BaseIndexNew {
     public static final String returnContentLen = "returnContentLen";//返回结果长度
     public static final String dealState = "dealState";//处理状态	0：未处理1：已处理
     public static final String protectObjectName = "protectObjectName";//保护对象名
+    public static final String ruleType = "ruleType";//规则名称
     public static final String ruleName = "ruleName";//规则名称
     public static final String riskLev = "riskLev";//风险等级	0、1、2、3、4
 
@@ -132,7 +133,7 @@ public class BaseIndexNew {
      */
     static Document getDoc(String record) {
         String[] str = record.split(regex);
-        if (str.length != 32) {
+        if (str.length != 33) {
             return null;
         }
         Document doc = new Document();
@@ -183,9 +184,11 @@ public class BaseIndexNew {
         doc.add(new StoredField(returnContentLen, Integer.valueOf(str[27])));
         doc.add(new StringField(dealState, str[28], Field.Store.YES));
         doc.add(new StringField(protectObjectName, str[29], Field.Store.YES));
-        doc.add(new StringField(ruleName, str[30], Field.Store.YES));
-        doc.add(new IntPoint(riskLev, Integer.valueOf(str[31])));
-        doc.add(new StoredField(riskLev, Integer.valueOf(str[31])));
+        doc.add(new IntPoint(ruleType, Integer.valueOf(str[30])));
+        doc.add(new StoredField(ruleType, Integer.valueOf(str[30])));
+        doc.add(new StringField(ruleName, str[31], Field.Store.YES));
+        doc.add(new IntPoint(riskLev, Integer.valueOf(str[32])));
+        doc.add(new StoredField(riskLev, Integer.valueOf(str[32])));
         return doc;
     }
 }

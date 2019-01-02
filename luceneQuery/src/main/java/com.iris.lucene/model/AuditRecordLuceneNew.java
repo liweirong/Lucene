@@ -34,6 +34,7 @@ public class AuditRecordLuceneNew {
     private Integer returnContentLen;//int 返回结果长度
     private Integer dealState;//  int 处理状态  0：未处理1：已处理
     private String protectObjectName;//  StringField 保护对象名
+    private String ruleType;//  StringField 规则名称
     private String ruleName;//  StringField 规则名称
     private Integer riskLev;//  int 风险等级  0、1、2、3、4
 }
